@@ -1,13 +1,13 @@
-package com.example.recherchecommandedemedicament;
+package com.app.easypharma_backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class RechercheCommandeDeMedicamentApplication {
+public class EasypharmaApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(RechercheCommandeDeMedicamentApplication.class, args);
+        SpringApplication.run(EasypharmaApplication.class, args);
     }
 
 }
