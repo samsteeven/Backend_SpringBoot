@@ -245,9 +245,9 @@
                 <artifactId>flyway-maven-plugin</artifactId>
                 <version>10.11.0</version>
                 <configuration>
-                    <url>dbc:postgresql://localhost:5432/easypharma_db</url>
-                    <user>samendjiaha</user>
-                    <password>password</password>
+                    <url>jdbc:h2:mem:easypharma_db</url>
+                    <user>samen</user>
+                    <password>admin</password>
                     <locations>
                         <location>filesystem:src/main/resources/db/migration</location>
                     </locations>

@@ -1,0 +1,1 @@
+// Package pour la couche application des médicaments

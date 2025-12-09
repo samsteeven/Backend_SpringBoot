@@ -1,0 +1,1 @@
+// Package pour les DTOs communs à l'application

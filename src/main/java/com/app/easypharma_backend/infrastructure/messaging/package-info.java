@@ -1,0 +1,1 @@
+// Package pour la messagerie de l'infrastructure
