@@ -51,7 +51,7 @@ class UpdateUserByIdUseCaseTest {
                 .firstName("John")
                 .lastName("Doe")
                 .phone("+237600000000")
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .build();
 
         updateUserRequest = UpdateUserRequest.builder()
@@ -71,7 +71,7 @@ class UpdateUserByIdUseCaseTest {
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("+237600000001")
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -120,7 +120,7 @@ class UpdateUserByIdUseCaseTest {
                 .firstName("Another")
                 .lastName("User")
                 .phone("+237600000002")
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -147,7 +147,7 @@ class UpdateUserByIdUseCaseTest {
                 .firstName("Another")
                 .lastName("User")
                 .phone("+237600000001")
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));

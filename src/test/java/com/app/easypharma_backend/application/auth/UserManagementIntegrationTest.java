@@ -42,7 +42,7 @@ class UserManagementIntegrationTest {
                 .firstName("User")
                 .lastName("Management")
                 .phone("+237600000010")
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .build();
 
         AuthResponse authResponse = registerUseCase.execute(registerRequest);

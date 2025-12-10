@@ -32,7 +32,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("John")
                 .lastName("Doe")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -73,7 +73,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("Jane")
                 .lastName("Doe")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -91,7 +91,7 @@ class UserRepositoryIntegrationTest {
         // Vérifier qu'un utilisateur inexistant n'existe pas
         boolean notExists = userRepository.existsByEmail("nonexistent@test.com");
         assertThat(notExists).isFalse();
-        
+
         boolean notExistsPhone = userRepository.existsByPhone("+237999999999");
         assertThat(notExistsPhone).isFalse();
     }
@@ -108,7 +108,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("Original")
                 .lastName("Name")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -139,7 +139,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("ToDelete")
                 .lastName("User")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -169,7 +169,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("Case")
                 .lastName("Sensitive")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();

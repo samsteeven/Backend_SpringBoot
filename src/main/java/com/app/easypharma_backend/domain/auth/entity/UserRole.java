@@ -1,17 +1,18 @@
 package com.app.easypharma_backend.domain.auth.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Rôles disponibles pour les utilisateurs")
 public enum UserRole {
-    @JsonProperty("PATIENT")
-    PATIENT,
+    @Schema(description = "Administrateur du système")
+    ADMIN,
     
-    @JsonProperty("PHARMACIST")
+    @Schema(description = "Pharmacien")
     PHARMACIST,
     
-    @JsonProperty("DELIVERY")
-    DELIVERY,
-    
-    @JsonProperty("ADMIN")
-    ADMIN
+    @Schema(description = "Client/Utilisateur standard")
+    CUSTOMER,
+
+    @Schema(description = "Livreur")
+    DELIVERY
 }

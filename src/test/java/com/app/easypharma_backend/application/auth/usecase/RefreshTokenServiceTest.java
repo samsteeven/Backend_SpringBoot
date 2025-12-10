@@ -45,7 +45,7 @@ class RefreshTokenServiceTest {
                     .firstName("Refresh")
                     .lastName("Test")
                     .phone(uniquePhone)
-                    .role(UserRole.PATIENT)
+                    .role(UserRole.CUSTOMER)
                     .isActive(true)
                     .isVerified(false)
                     .build();

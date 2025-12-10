@@ -39,8 +39,6 @@ public class ListUsersUseCase {
                 .pageSize(usersPage.getSize())
                 .totalElements(usersPage.getTotalElements())
                 .totalPages(usersPage.getTotalPages())
-                .isFirst(usersPage.isFirst())
-                .isLast(usersPage.isLast())
                 .hasNext(usersPage.hasNext())
                 .hasPrevious(usersPage.hasPrevious())
                 .build();

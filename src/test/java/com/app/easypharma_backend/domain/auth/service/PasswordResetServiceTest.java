@@ -40,7 +40,7 @@ class PasswordResetServiceTest {
                 .firstName("Reset")
                 .lastName("Test")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -72,7 +72,7 @@ class PasswordResetServiceTest {
                 .firstName("Validate")
                 .lastName("Test")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -106,7 +106,7 @@ class PasswordResetServiceTest {
                 .firstName("Password")
                 .lastName("Reset")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();

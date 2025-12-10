@@ -32,9 +32,16 @@ public class GlobalExceptionHandler {
         
         log.warn("Erreur de validation: {}", errors);
         
+        ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+                .success(false)
+                .message("Erreur de validation")
+                .data(errors)
+                .timestamp(System.currentTimeMillis())
+                .build();
+                
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("Erreur de validation", errors));
+                .body(response);
     }
     
     /**

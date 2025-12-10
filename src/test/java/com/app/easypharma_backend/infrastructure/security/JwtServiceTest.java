@@ -34,7 +34,7 @@ class JwtServiceTest {
                 .firstName("JWT")
                 .lastName("Test")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -69,7 +69,7 @@ class JwtServiceTest {
                 .firstName("Extract")
                 .lastName("Email")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -92,7 +92,7 @@ class JwtServiceTest {
                 .firstName("Validate")
                 .lastName("Correct")
                 .phone(uniquePhone)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -122,7 +122,7 @@ class JwtServiceTest {
                 .firstName("Validate")
                 .lastName("User1")
                 .phone(uniquePhone1)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -133,7 +133,7 @@ class JwtServiceTest {
                 .firstName("Validate")
                 .lastName("User2")
                 .phone(uniquePhone2)
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .isActive(true)
                 .isVerified(false)
                 .build();

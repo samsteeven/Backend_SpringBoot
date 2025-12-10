@@ -37,7 +37,7 @@ class DeleteUserUseCaseTest {
                 .firstName("John")
                 .lastName("Doe")
                 .phone("+237600000000")
-                .role(UserRole.PATIENT)
+                .role(UserRole.CUSTOMER)
                 .build();
     }
 
