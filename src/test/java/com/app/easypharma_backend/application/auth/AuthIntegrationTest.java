@@ -44,7 +44,7 @@ class AuthIntegrationTest {
                 .firstName("Test")
                 .lastName("User")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         HttpHeaders headers = new HttpHeaders();

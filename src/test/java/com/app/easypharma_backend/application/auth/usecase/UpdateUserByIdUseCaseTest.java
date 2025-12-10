@@ -30,7 +30,8 @@ class UpdateUserByIdUseCaseTest {
     @Mock
     private UserMapper userMapper;
 
-    @Mock private UserUpdateHelper userUpdateHelper;
+    @Mock 
+    private UserUpdateHelper userUpdateHelper;
 
     @InjectMocks
     private UpdateUserByIdUseCase updateUserByIdUseCase;
@@ -51,7 +52,7 @@ class UpdateUserByIdUseCaseTest {
                 .firstName("John")
                 .lastName("Doe")
                 .phone("+237600000000")
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         updateUserRequest = UpdateUserRequest.builder()
@@ -71,14 +72,23 @@ class UpdateUserByIdUseCaseTest {
                 .firstName("Updated")
                 .lastName("Name")
                 .phone("+237600000001")
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmail("updated@example.com")).thenReturn(false);
-        when(userRepository.existsByPhone("+237600000001")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userMapper.toResponse(user)).thenReturn(expectedUserResponse);
+        doNothing().when(userUpdateHelper).validateAndUpdateUser(user, updateUserRequest);
+        // Simulation du mapping
+        doAnswer(invocation -> {
+            UpdateUserRequest req = invocation.getArgument(0);
+            User usr = invocation.getArgument(1);
+            usr.setEmail(req.getEmail());
+            usr.setFirstName(req.getFirstName());
+            usr.setLastName(req.getLastName());
+            usr.setPhone(req.getPhone());
+            return null;
+        }).when(userMapper).updateEntityFromRequest(updateUserRequest, user);
 
         // When
         var result = updateUserByIdUseCase.execute(userId, updateUserRequest);
@@ -88,11 +98,9 @@ class UpdateUserByIdUseCaseTest {
         assertThat(result.getEmail()).isEqualTo("updated@example.com");
         verify(userRepository).findById(userId);
         verify(userUpdateHelper).validateAndUpdateUser(user, updateUserRequest);
-        verify(userRepository).existsByEmail("updated@example.com");
-        verify(userRepository).existsByPhone("+237600000001");
-        verify(userMapper).updateEntityFromRequest(updateUserRequest, user);
         verify(userRepository).save(user);
         verify(userMapper).toResponse(user);
+        verify(userMapper).updateEntityFromRequest(updateUserRequest, user);
     }
 
     @Test
@@ -107,24 +115,15 @@ class UpdateUserByIdUseCaseTest {
 
         verify(userRepository).findById(userId);
         verify(userRepository, never()).save(any(User.class));
+        verify(userUpdateHelper, never()).validateAndUpdateUser(any(), any());
     }
 
     @Test
     void shouldThrowExceptionWhenEmailAlreadyExists() {
         // Given
-        UUID anotherUserId = UUID.randomUUID();
-        User anotherUser = User.builder()
-                .id(anotherUserId)
-                .email("updated@example.com")
-                .password("anotherPassword")
-                .firstName("Another")
-                .lastName("User")
-                .phone("+237600000002")
-                .role(UserRole.CUSTOMER)
-                .build();
-
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmail("updated@example.com")).thenReturn(true);
+        doThrow(new DuplicateResourceException("Cet email est déjà utilisé"))
+                .when(userUpdateHelper).validateAndUpdateUser(user, updateUserRequest);
 
         // When & Then
         assertThatThrownBy(() -> updateUserByIdUseCase.execute(userId, updateUserRequest))
@@ -132,27 +131,16 @@ class UpdateUserByIdUseCaseTest {
                 .hasMessage("Cet email est déjà utilisé");
 
         verify(userRepository).findById(userId);
-        verify(userRepository).existsByEmail("updated@example.com");
+        verify(userUpdateHelper).validateAndUpdateUser(user, updateUserRequest);
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void shouldThrowExceptionWhenPhoneAlreadyExists() {
         // Given
-        UUID anotherUserId = UUID.randomUUID();
-        User anotherUser = User.builder()
-                .id(anotherUserId)
-                .email("another@example.com")
-                .password("anotherPassword")
-                .firstName("Another")
-                .lastName("User")
-                .phone("+237600000001")
-                .role(UserRole.CUSTOMER)
-                .build();
-
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmail("updated@example.com")).thenReturn(false);
-        when(userRepository.existsByPhone("+237600000001")).thenReturn(true);
+        doThrow(new DuplicateResourceException("Ce numéro de téléphone est déjà utilisé"))
+                .when(userUpdateHelper).validateAndUpdateUser(user, updateUserRequest);
 
         // When & Then
         assertThatThrownBy(() -> updateUserByIdUseCase.execute(userId, updateUserRequest))
@@ -160,8 +148,7 @@ class UpdateUserByIdUseCaseTest {
                 .hasMessage("Ce numéro de téléphone est déjà utilisé");
 
         verify(userRepository).findById(userId);
-        verify(userRepository).existsByEmail("updated@example.com");
-        verify(userRepository).existsByPhone("+237600000001");
+        verify(userUpdateHelper).validateAndUpdateUser(user, updateUserRequest);
         verify(userRepository, never()).save(any(User.class));
     }
 }

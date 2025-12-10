@@ -48,7 +48,7 @@ class UpdateUserProfileUseCaseTest {
                 .firstName("John")
                 .lastName("Doe")
                 .phone("+237600000000")
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         updateUserRequest = UpdateUserRequest.builder()

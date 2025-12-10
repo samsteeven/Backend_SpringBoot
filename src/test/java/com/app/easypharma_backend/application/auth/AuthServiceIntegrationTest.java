@@ -46,7 +46,7 @@ class AuthServiceIntegrationTest {
                 .firstName("AuthService")
                 .lastName("Test")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         // Exécuter l'inscription
@@ -81,7 +81,7 @@ class AuthServiceIntegrationTest {
                 .firstName("Login")
                 .lastName("Test")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         registerUseCase.execute(registerRequest);
@@ -114,7 +114,7 @@ class AuthServiceIntegrationTest {
                 .firstName("Invalid")
                 .lastName("Creds")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         registerUseCase.execute(registerRequest);

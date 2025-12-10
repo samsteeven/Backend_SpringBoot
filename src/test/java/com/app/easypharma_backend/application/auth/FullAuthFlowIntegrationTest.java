@@ -41,7 +41,7 @@ class FullAuthFlowIntegrationTest {
                 .firstName("Full")
                 .lastName("Flow")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .build();
 
         HttpHeaders headers = new HttpHeaders();

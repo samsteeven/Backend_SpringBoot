@@ -11,7 +11,7 @@ public enum UserRole {
     PHARMACIST,
     
     @Schema(description = "Client/Utilisateur standard")
-    CUSTOMER,
+    PATIENT,
 
     @Schema(description = "Livreur")
     DELIVERY

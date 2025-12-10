@@ -32,7 +32,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("John")
                 .lastName("Doe")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -73,7 +73,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("Jane")
                 .lastName("Doe")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -108,7 +108,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("Original")
                 .lastName("Name")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -139,7 +139,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("ToDelete")
                 .lastName("User")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
                 .build();
@@ -169,7 +169,7 @@ class UserRepositoryIntegrationTest {
                 .firstName("Case")
                 .lastName("Sensitive")
                 .phone(uniquePhone)
-                .role(UserRole.CUSTOMER)
+                .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
                 .build();
