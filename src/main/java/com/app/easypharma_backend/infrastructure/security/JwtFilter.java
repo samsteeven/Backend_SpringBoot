@@ -1,6 +1,5 @@
 package com.app.easypharma_backend.infrastructure.security;
 
-import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +34,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             String jwt = parseJwt(request);
-            if (jwt != null) {
+            if (jwt != null &&isValidJwtFormat(jwt)) {
                 String email = jwtService.extractEmail(jwt);
                 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
@@ -63,5 +62,21 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         return null;
+    }
+
+private boolean isValidJwtFormat(String token) {
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
+        
+        // Un JWT valide doit contenir exactement 2 ou 4 caractères '.'
+        int dotCount = 0;
+        for (char c : token.toCharArray()) {
+            if (c == '.') {
+                dotCount++;
+            }
+        }
+        
+        return dotCount == 2 || dotCount == 4;
     }
 }

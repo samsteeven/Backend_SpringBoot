@@ -2,7 +2,7 @@ package com.app.easypharma_backend.domain.payment.repository;
 
 import com.app.easypharma_backend.domain.payment.entity.Payment;
 import com.app.easypharma_backend.domain.payment.entity.PaymentMethod;
-import com.app.easypharma.domain.payment.entity.PaymentStatus;
+import com.app.easypharma_backend.domain.payment.entity.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,6 +1,7 @@
 package com.app.easypharma_backend.application.auth.mapper;
 
 import com.app.easypharma_backend.application.auth.dto.request.RegisterRequest;
+import com.app.easypharma_backend.application.auth.dto.request.UpdateUserRequest;
 import com.app.easypharma_backend.application.auth.dto.response.UserResponse;
 import com.app.easypharma_backend.domain.auth.entity.User;
 import org.mapstruct.*;
@@ -62,6 +63,17 @@ public interface UserMapper {
     void updateEntityFromRequest(RegisterRequest request, @MappingTarget User user);
 
     /**
+     * Met à jour une entité User existante avec les données d'un UpdateUserRequest
+     * Utilise pour les mises à jour partielles du profil utilisateur
+     */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+@Mapping(target = "password", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    void updateEntityFromRequest(UpdateUserRequest request, @MappingTarget User user);
+
+/**
      * Mapping personnalisé pour les cas spéciaux
      * Par exemple, concatenation du nom complet
      */
