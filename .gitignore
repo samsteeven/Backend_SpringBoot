@@ -32,4 +32,17 @@ build/
 ### VS Code ###
 .vscode/
 
+# Images
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.svg
+*.ico
+*.webp
+
+# Fichiers ZIP
+*.zip
+Backend_SpringBoot/
 logs/
