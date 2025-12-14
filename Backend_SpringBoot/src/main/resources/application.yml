@@ -1,0 +1,299 @@
+# ========================================
+# APPLICATION.YML - EASYPHARMA BACKEND
+# Fichier: src/main/resources/application.yml
+# ========================================
+
+spring:
+  application:
+    name: easypharma-backend
+  
+  # ========================================
+  # DATABASE CONFIGURATION (Laisser la configuration par défaut si vous ne disposez pas de postgresql
+  # sinon remplacer par la config postgresql)
+  # ========================================
+#  datasource:
+#    url: jdbc:h2:mem:easypharma_db
+#    username: samen
+#    password: admin
+#    driver-class-name: org.h2.Driver
+#    hikari:
+#      maximum-pool-size: 10
+#      minimum-idle: 5
+#      connection-timeout: 30000
+#      idle-timeout: 600000
+#      max-lifetime: 1800000
+  datasource:
+    url: jdbc:postgresql://localhost:5432/easypharma_db
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        trace: false
+        web-allow-others: false
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+  
+  # Configuration PostgreSQL (à décommenter si vous disposer postgresql)
+#datasource:
+#  url: jdbc:postgresql://localhost:5432/easypharma_db
+#  username: samendjiaha
+#  password: password
+#  driver-class-name: org.postgresql.Driver
+#  hikari:
+#    maximum-pool-size: 10
+#    minimum-idle: 5
+#    connection-timeout: 30000
+#    idle-timeout: 600000
+#    max-lifetime: 1800000
+  
+  # ========================================
+  # FLYWAY MIGRATION
+  # ========================================
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+  
+  # ========================================
+  # REDIS CACHE
+  # ========================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # 1 heure en ms
+      cache-null-values: false
+  
+  # ========================================
+  # RABBITMQ MESSAGING
+  # ========================================
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+  
+  # ========================================
+  # MAIL CONFIGURATION (Gmail SMTP(PROD) , MailHOG(local))
+  # ========================================
+  mail:
+    host: localhost
+    port: 1025
+    username: your-email@gmail.com
+#    password: your-app-password  # Générer un mot de passe d'application Gmail
+    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  
+  # ========================================
+  # FILE UPLOAD
+  # ========================================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
+  
+  # ========================================
+  # SECURITY (DÉSACTIVER TEMPORAIREMENT POUR DEV)
+  # ========================================
+  security:
+    user:
+      name: admin
+      password: admin
+
+# ========================================
+# APPLICATION CUSTOM PROPERTIES
+# ========================================
+app:
+  # JWT Configuration
+  jwt:
+    secret: NDIzNTM0NTQzNTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NTM0NQ==  # Change in production !
+    expiration: 86400000  # 24 heures en ms
+    refresh-expiration: 604800000  # 7 jours en ms
+  
+  # File Storage
+  file-storage:
+    upload-dir: ./uploads
+    photos-dir: ${app.file-storage.upload-dir}/photos
+    documents-dir: ${app.file-storage.upload-dir}/documents
+    receipts-dir: ${app.file-storage.upload-dir}/receipts
+  
+  # CORS
+  cors:
+    allowed-origins: http://localhost:4200,http://localhost:3000
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
+# ========================================
+# SPRINGDOC (SWAGGER) CONFIGURATION
+# ========================================
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+  show-actuator: true
+
+# ========================================
+# ACTUATOR (MONITORING)
+# ========================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      access: read_only
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# ========================================
+# LOGGING
+# ========================================
+logging:
+  level:
+    root: INFO
+    com.app.easypharma: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/easypharma-backend.log
+
+# ========================================
+# SERVER CONFIGURATION
+# ========================================
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+  http2:
+    enabled: true
+
+---
+# ========================================
+# PROFIL: DEVELOPMENT
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.app.easypharma: DEBUG
+
+---
+# ========================================
+# PROFIL: PRODUCTION
+# ========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/easypharma_prod}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}  # Variable d'environnement en prod
+
+logging:
+  level:
+    root: WARN
+    com.app.easypharma: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized

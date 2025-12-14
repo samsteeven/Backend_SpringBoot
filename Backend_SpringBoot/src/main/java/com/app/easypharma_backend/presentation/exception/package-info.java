@@ -1,0 +1,1 @@
+// Package pour les exceptions de la présentation
