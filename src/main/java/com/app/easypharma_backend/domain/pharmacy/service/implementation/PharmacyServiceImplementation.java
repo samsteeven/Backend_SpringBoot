@@ -1,5 +1,8 @@
 package com.app.easypharma_backend.domain.pharmacy.service.implementation;
 
+import com.app.easypharma_backend.domain.auth.entity.User;
+import com.app.easypharma_backend.domain.auth.entity.UserRole;
+import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import com.app.easypharma_backend.domain.pharmacy.dto.PharmacyDTO;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import com.app.easypharma_backend.domain.pharmacy.entity.PharmacyStatus;
@@ -21,8 +24,7 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
 
     private final PharmacyRepository pharmacyRepository;
     private final PharmacyMapper pharmacyMapper;
-
-    private final UserRep userRepository;  // ← Ajouter cette dépendance
+    private final UserRepository userRepository;
 
     @Override
     public List<PharmacyDTO> getAllPharmacies() {
@@ -45,10 +47,33 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
 
     @Override
     public PharmacyDTO createPharmacy(PharmacyDTO pharmacyDTO) {
+        // 1. Validate License uniqueness
         if (pharmacyRepository.existsByLicenseNumber(pharmacyDTO.getLicenseNumber())) {
             throw new RuntimeException("License number already exists");
         }
+
+        // 2. Validate User
+        if (pharmacyDTO.getUserId() == null) {
+            throw new RuntimeException("User ID is required to create a pharmacy");
+        }
+
+        User user = userRepository.findById(pharmacyDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found: " + pharmacyDTO.getUserId()));
+
+        // 3. Verify Role
+        if (user.getRole() != UserRole.PHARMACIST) {
+            throw new RuntimeException("Only users with role PHARMACIST can create a pharmacy");
+        }
+
+        // 4. Verify User doesn't already have a pharmacy
+        if (pharmacyRepository.findByUserId(user.getId()).isPresent()) {
+            throw new RuntimeException("User already has a registered pharmacy");
+        }
+
+        // 5. Create Entity
         Pharmacy pharmacy = pharmacyMapper.toEntity(pharmacyDTO);
+        pharmacy.setUser(user);
+
         Pharmacy saved = pharmacyRepository.save(pharmacy);
         return pharmacyMapper.toDTO(saved);
     }
@@ -99,8 +124,7 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     @Override
     public List<PharmacyDTO> findNearbyPharmacies(Double latitude, Double longitude, Double radiusKm) {
         return pharmacyMapper.toDTOList(
-                pharmacyRepository.findNearbyPharmacies(latitude, longitude, radiusKm)
-        );
+                pharmacyRepository.findNearbyPharmacies(latitude, longitude, radiusKm));
     }
 
     @Override
