@@ -2,7 +2,6 @@ package com.app.easypharma_backend.domain.pharmacy.mapper;
 
 import com.app.easypharma_backend.domain.pharmacy.dto.PharmacyDTO;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
-import com.app.easypharma_backend.domain.pharmacy.entity.PharmacyStatus;
 import org.mapstruct.*;
 
 import java.util.List;
