@@ -4,7 +4,7 @@ import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,8 +19,7 @@ import java.util.UUID;
 public class Review {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 

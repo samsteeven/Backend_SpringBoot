@@ -1,11 +1,10 @@
 package com.app.easypharma_backend.domain.order.entity;
 
-
 import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,8 +22,7 @@ import java.util.UUID;
 public class Order {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
