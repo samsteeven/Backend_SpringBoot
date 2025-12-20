@@ -5,8 +5,11 @@ import com.app.easypharma_backend.application.auth.dto.response.AuthResponse;
 import com.app.easypharma_backend.application.auth.dto.response.UserResponse;
 import com.app.easypharma_backend.application.auth.mapper.UserMapper;
 import com.app.easypharma_backend.domain.auth.entity.User;
+import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import com.app.easypharma_backend.domain.auth.service.UserDomainService;
+import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
+import com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository;
 import com.app.easypharma_backend.presentation.exception.DuplicateResourceException;
 import com.app.easypharma_backend.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,7 @@ public class RegisterUseCase {
     private final UserDomainService userDomainService;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final PharmacyRepository pharmacyRepository;
     // TODO: Injecter NotificationService pour envoyer email de vérification
 
     /**
@@ -51,10 +55,29 @@ public class RegisterUseCase {
             throw new DuplicateResourceException("Ce numéro de téléphone est déjà utilisé");
         }
 
-        // 3. Mapper le DTO vers l'entité
+        // 3. Valider la pharmacie pour les rôles PHARMACY_EMPLOYEE et DELIVERY
+        if (request.getRole() == UserRole.PHARMACY_EMPLOYEE || request.getRole() == UserRole.DELIVERY) {
+            if (request.getPharmacyId() == null) {
+                throw new IllegalArgumentException(
+                        "L'ID de la pharmacie est obligatoire pour les rôles PHARMACY_EMPLOYEE et DELIVERY");
+            }
+            // Vérifier que la pharmacie existe
+            Pharmacy pharmacy = pharmacyRepository.findById(request.getPharmacyId())
+                    .orElseThrow(() -> new IllegalArgumentException("Pharmacie non trouvée"));
+        } else if (request.getPharmacyId() != null) {
+            throw new IllegalArgumentException("L'ID de la pharmacie ne doit pas être fourni pour ce rôle");
+        }
+
+        // 4. Mapper le DTO vers l'entité
         User user = userMapper.toEntity(request);
 
-        // 4. Hasher le mot de passe
+        // 5. Assigner la pharmacie si nécessaire
+        if (request.getPharmacyId() != null) {
+            Pharmacy pharmacy = pharmacyRepository.findById(request.getPharmacyId()).orElseThrow();
+            user.setPharmacy(pharmacy);
+        }
+
+        // 6. Hasher le mot de passe
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         user.setPassword(hashedPassword);
 

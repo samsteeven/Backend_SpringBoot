@@ -30,7 +30,7 @@ public class PharmacyMedicationController {
 
     @Operation(summary = "Ajouter un médicament", description = "Ajoute un médicament à l'inventaire de la pharmacie")
     @PostMapping
-    @PreAuthorize("hasRole('PHARMACIST')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<PharmacyMedicationDTO> addMedication(
             @PathVariable @NonNull UUID pharmacyId,
             @RequestParam @NonNull UUID medicationId,
@@ -42,7 +42,7 @@ public class PharmacyMedicationController {
 
     @Operation(summary = "Mettre à jour le stock", description = "Met à jour la quantité en stock d'un médicament")
     @PatchMapping("/{medicationId}/stock")
-    @PreAuthorize("hasRole('PHARMACIST')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<PharmacyMedicationDTO> updateStock(
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId,
@@ -52,7 +52,7 @@ public class PharmacyMedicationController {
 
     @Operation(summary = "Mettre à jour le prix", description = "Met à jour le prix d'un médicament")
     @PatchMapping("/{medicationId}/price")
-    @PreAuthorize("hasRole('PHARMACIST')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<PharmacyMedicationDTO> updatePrice(
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId,
@@ -62,7 +62,7 @@ public class PharmacyMedicationController {
 
     @Operation(summary = "Supprimer un médicament", description = "Retire un médicament de l'inventaire")
     @DeleteMapping("/{medicationId}")
-    @PreAuthorize("hasRole('PHARMACIST')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<Void> removeMedication(
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId) {

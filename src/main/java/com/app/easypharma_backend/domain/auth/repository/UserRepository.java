@@ -1,6 +1,5 @@
 package com.app.easypharma_backend.domain.auth.repository;
 
-
 import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,4 +46,18 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     // Recherche livreurs disponibles dans une ville
     @Query("SELECT u FROM User u WHERE u.role = 'DELIVERY' AND u.isActive = true AND u.city = :city")
     List<User> findAvailableDeliveryPersonsInCity(@Param("city") String city);
+
+    // Recherche utilisateurs par pharmacie
+    List<User> findByPharmacyId(UUID pharmacyId);
+
+    // Recherche utilisateurs par pharmacie et rôle
+    List<User> findByPharmacyIdAndRole(UUID pharmacyId, UserRole role);
+
+    // Recherche employés actifs d'une pharmacie
+    @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'PHARMACY_EMPLOYEE' AND u.isActive = true")
+    List<User> findActiveEmployeesByPharmacy(@Param("pharmacyId") UUID pharmacyId);
+
+    // Recherche livreurs actifs d'une pharmacie
+    @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'DELIVERY' AND u.isActive = true")
+    List<User> findActiveDeliveryPersonsByPharmacy(@Param("pharmacyId") UUID pharmacyId);
 }

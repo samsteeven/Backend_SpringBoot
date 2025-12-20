@@ -8,11 +8,7 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
-)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
 
     /**
@@ -32,6 +28,8 @@ public interface UserMapper {
     @Mapping(target = "isActive", source = "isActive")
     @Mapping(target = "isVerified", source = "isVerified")
     @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "pharmacyId", expression = "java(user.getPharmacy() != null ? user.getPharmacy().getId() : null)")
+    @Mapping(target = "pharmacyName", expression = "java(user.getPharmacy() != null ? user.getPharmacy().getName() : null)")
     UserResponse toResponse(User user);
 
     /**
@@ -44,11 +42,12 @@ public interface UserMapper {
      * Ignore les champs qui seront définis par la logique métier
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)  // Hash géré par le Use Case
+    @Mapping(target = "password", ignore = true) // Hash géré par le Use Case
+    @Mapping(target = "pharmacy", ignore = true) // Géré par le Use Case
     @Mapping(target = "isActive", constant = "true")
     @Mapping(target = "isVerified", constant = "false")
-    @Mapping(target = "createdAt", ignore = true)  // Géré par @PrePersist
-    @Mapping(target = "updatedAt", ignore = true)  // Géré par @PrePersist
+    @Mapping(target = "createdAt", ignore = true) // Géré par @PrePersist
+    @Mapping(target = "updatedAt", ignore = true) // Géré par @PrePersist
     User toEntity(RegisterRequest request);
 
     /**
@@ -68,12 +67,12 @@ public interface UserMapper {
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-@Mapping(target = "password", ignore = true)
+    @Mapping(target = "password", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromRequest(UpdateUserRequest request, @MappingTarget User user);
 
-/**
+    /**
      * Mapping personnalisé pour les cas spéciaux
      * Par exemple, concatenation du nom complet
      */

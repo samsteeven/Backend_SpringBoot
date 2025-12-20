@@ -53,7 +53,7 @@ public class PharmacyController {
         @Operation(summary = "Créer une nouvelle pharmacie", description = "Crée un enregistrement de pharmacie en attente de validation. Nécessite le rôle PHARMACIST.")
         @ApiResponse(responseCode = "201", description = "Pharmacie créée")
         @PostMapping
-        @PreAuthorize("hasRole('PHARMACIST')")
+        @PreAuthorize("hasRole('PHARMACY_ADMIN')")
         public ResponseEntity<PharmacyDTO> createPharmacy(
                         @RequestBody @NonNull PharmacyDTO pharmacyDTO) {
                 PharmacyDTO created = pharmacyService.createPharmacy(pharmacyDTO);
@@ -62,7 +62,7 @@ public class PharmacyController {
 
         @Operation(summary = "Mettre à jour une pharmacie", description = "Met à jour les informations d’une pharmacie existante. Nécessite le rôle PHARMACIST ou ADMIN.")
         @PutMapping("/{id}")
-        @PreAuthorize("hasRole('PHARMACIST') or hasRole('ADMIN')")
+        @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('SUPER_ADMIN')")
         public ResponseEntity<PharmacyDTO> updatePharmacy(
                         @PathVariable @NonNull UUID id,
                         @RequestBody @NonNull PharmacyDTO pharmacyDTO) {
@@ -71,7 +71,7 @@ public class PharmacyController {
 
         @Operation(summary = "Changer le statut d’une pharmacie", description = "Change le statut (PENDING, APPROVED, REJECTED, SUSPENDED) d’une pharmacie. Nécessite le rôle ADMIN.")
         @PatchMapping("/{id}/status")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasRole('SUPER_ADMIN')")
         public ResponseEntity<PharmacyDTO> changeStatus(
                         @PathVariable @NonNull UUID id,
                         @RequestParam @NonNull PharmacyStatus status) {
@@ -119,7 +119,7 @@ public class PharmacyController {
         @Operation(summary = "Supprimer une pharmacie", description = "Supprime une pharmacie par son identifiant. Nécessite le rôle ADMIN.")
         @ApiResponse(responseCode = "204", description = "Pharmacie supprimée")
         @DeleteMapping("/{id}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasRole('SUPER_ADMIN')")
         public ResponseEntity<Void> deletePharmacy(@PathVariable @NonNull UUID id) {
                 pharmacyService.deletePharmacy(id);
                 return ResponseEntity.noContent().build();

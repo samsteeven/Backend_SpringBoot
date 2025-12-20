@@ -46,7 +46,7 @@ public class OrderController {
 
     @Operation(summary = "Commandes de ma pharmacie (Pharmacien)", description = "Récupère les commandes reçues par la pharmacie du pharmacien connecté")
     @GetMapping("/pharmacy-orders/{pharmacyId}")
-    @PreAuthorize("hasRole('PHARMACIST')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE')")
     public ResponseEntity<List<OrderDTO>> getPharmacyOrders(@PathVariable @NonNull UUID pharmacyId) {
         // En théorie, on devrait vérifier si le pharmacien connecté est bien proprio de
         // cette pharmacie
@@ -65,7 +65,7 @@ public class OrderController {
 
     @Operation(summary = "Mettre à jour statut", description = "Pharmacien valide ou marque livré")
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('PHARMACIST') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE') or hasRole('SUPER_ADMIN')")
     public ResponseEntity<OrderDTO> updateStatus(
             @PathVariable @NonNull UUID id,
             @RequestParam @NonNull OrderStatus status) {

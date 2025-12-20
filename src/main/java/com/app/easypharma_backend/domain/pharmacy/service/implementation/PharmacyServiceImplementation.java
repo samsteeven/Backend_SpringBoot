@@ -57,8 +57,8 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
                 .orElseThrow(() -> new RuntimeException("User not found: " + pharmacyDTO.getUserId()));
 
         // 3. Verify Role
-        if (user.getRole() != UserRole.PHARMACIST) {
-            throw new RuntimeException("Only users with role PHARMACIST can create a pharmacy");
+        if (user.getRole() != UserRole.PHARMACY_ADMIN) {
+            throw new RuntimeException("Only users with role PHARMACY_ADMIN can create a pharmacy");
         }
 
         // 4. Verify User doesn't already have a pharmacy

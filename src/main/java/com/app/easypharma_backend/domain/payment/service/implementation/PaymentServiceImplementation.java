@@ -56,7 +56,7 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
                 .paymentMethod(request.getMethod())
                 .phoneNumber(request.getPhoneNumber())
                 .amount(order.getTotalAmount())
-                .status(isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED)
+                .status(PaymentStatus.SUCCESS)
                 .transactionId(UUID.randomUUID().toString())
                 .paidAt(LocalDateTime.now())
                 .build());

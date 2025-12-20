@@ -53,26 +53,25 @@ public class FullOrderFlowIntegrationTest {
         @Autowired
         private PaymentServiceInterface paymentService;
 
-        private User pharmacist;
-        private User patient;
+    private User patient;
         private Pharmacy pharmacy;
         private Medication medication;
 
         @BeforeEach
         void setup() {
                 // 1. Create Users
-                pharmacist = userRepository.save(User.builder()
-                                .email("pharma@test.com")
-                                .password("test")
-                                .firstName("Pharma")
-                                .lastName("Cist")
-                                .phone("111111111")
-                                .role(UserRole.PHARMACIST)
-                                .isActive(true)
-                                .isVerified(true)
-                                .createdAt(LocalDateTime.now())
-                                .updatedAt(LocalDateTime.now())
-                                .build());
+            User pharmacist = userRepository.save(User.builder()
+                    .email("pharma@test.com")
+                    .password("test")
+                    .firstName("Pharma")
+                    .lastName("Cist")
+                    .phone("111111111")
+                    .role(UserRole.PHARMACY_ADMIN)
+                    .isActive(true)
+                    .isVerified(true)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build());
 
                 patient = userRepository.save(User.builder()
                                 .email("patient@test.com")

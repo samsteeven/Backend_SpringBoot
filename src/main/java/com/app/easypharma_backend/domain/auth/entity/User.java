@@ -20,7 +20,6 @@ public class User {
     @Id
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
-    @NonNull
     private UUID id;
 
     @Column(name = "email", nullable = false, unique = true, length = 255)
@@ -53,6 +52,10 @@ public class User {
 
     @Column(name = "longitude", precision = 11, scale = 8)
     private BigDecimal longitude;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pharmacy_id")
+    private com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy pharmacy;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default

@@ -141,6 +141,9 @@ public class OrderServiceImplementation implements OrderServiceInterface {
         if (status == OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
         } else if (status == OrderStatus.CONFIRMED || status == OrderStatus.PAID) {
+            // Check if this is the first confirmation BEFORE setting confirmedAt
+            boolean isFirstConfirmation = (order.getConfirmedAt() == null);
+
             order.setConfirmedAt(LocalDateTime.now());
             // Reduce stock here if strategy is "Reserve on Confirm"
             // But simpler to assume stock is checked on Create and reduced on Pay/Confirm.
@@ -148,7 +151,7 @@ public class OrderServiceImplementation implements OrderServiceInterface {
             // Ideally we should have a separate method "confirmOrder" which handles stock
             // deduction.
             // I'll add stock deduction on PAID/CONFIRMED transition
-            if (order.getConfirmedAt() == null) { // First confirmation
+            if (isFirstConfirmation) { // First confirmation
                 deductStock(order);
             }
         }
