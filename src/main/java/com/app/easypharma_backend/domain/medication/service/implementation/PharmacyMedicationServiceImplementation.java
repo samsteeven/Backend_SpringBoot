@@ -12,9 +12,11 @@ import com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,8 +31,12 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
     private final PharmacyMedicationMapper pharmacyMedicationMapper;
 
     @Override
-    public PharmacyMedicationDTO addMedicationToPharmacy(UUID pharmacyId, UUID medicationId, BigDecimal price,
+    public PharmacyMedicationDTO addMedicationToPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId,
+            BigDecimal price,
             Integer stock) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        Objects.requireNonNull(medicationId, "Medication ID cannot be null");
+
         Pharmacy pharmacy = pharmacyRepository.findById(pharmacyId)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
 
@@ -52,11 +58,15 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
                 .isAvailable(stock > 0)
                 .build();
 
-        return pharmacyMedicationMapper.toDTO(pharmacyMedicationRepository.save(pharmacyMedication));
+        PharmacyMedication savedPharmacyMedication = pharmacyMedicationRepository.save(pharmacyMedication);
+        return pharmacyMedicationMapper.toDTO(savedPharmacyMedication);
     }
 
     @Override
-    public PharmacyMedicationDTO updateStock(UUID pharmacyId, UUID medicationId, Integer quantity) {
+    public PharmacyMedicationDTO updateStock(@NonNull UUID pharmacyId, @NonNull UUID medicationId, Integer quantity) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        Objects.requireNonNull(medicationId, "Medication ID cannot be null");
+
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
 
         item.setStockQuantity(quantity);
@@ -68,14 +78,19 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
     }
 
     @Override
-    public PharmacyMedicationDTO updatePrice(UUID pharmacyId, UUID medicationId, BigDecimal price) {
+    public PharmacyMedicationDTO updatePrice(@NonNull UUID pharmacyId, @NonNull UUID medicationId, BigDecimal price) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        Objects.requireNonNull(medicationId, "Medication ID cannot be null");
+
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
         item.setPrice(price);
         return pharmacyMedicationMapper.toDTO(pharmacyMedicationRepository.save(item));
     }
 
     @Override
-    public List<PharmacyMedicationDTO> getPharmacyInventory(UUID pharmacyId) {
+    public List<PharmacyMedicationDTO> getPharmacyInventory(@NonNull UUID pharmacyId) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+
         if (!pharmacyRepository.existsById(pharmacyId)) {
             throw new RuntimeException("Pharmacy not found");
         }
@@ -83,17 +98,17 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
     }
 
     @Override
-    public PharmacyMedicationDTO getPharmacyMedication(UUID pharmacyId, UUID medicationId) {
+    public PharmacyMedicationDTO getPharmacyMedication(@NonNull UUID pharmacyId, @NonNull UUID medicationId) {
         return pharmacyMedicationMapper.toDTO(getLastPharmacyMedication(pharmacyId, medicationId));
     }
 
     @Override
-    public void removeMedicationFromPharmacy(UUID pharmacyId, UUID medicationId) {
+    public void removeMedicationFromPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId) {
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
         pharmacyMedicationRepository.delete(item);
     }
 
-    private PharmacyMedication getLastPharmacyMedication(UUID pharmacyId, UUID medicationId) {
+    private PharmacyMedication getLastPharmacyMedication(@NonNull UUID pharmacyId, @NonNull UUID medicationId) {
         return pharmacyMedicationRepository.findByPharmacyIdAndMedicationId(pharmacyId, medicationId)
                 .orElseThrow(() -> new RuntimeException("Medication not found in this pharmacy"));
     }

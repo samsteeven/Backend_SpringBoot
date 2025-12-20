@@ -20,6 +20,7 @@ public class User {
     @Id
     @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
+    @NonNull
     private UUID id;
 
     @Column(name = "email", nullable = false, unique = true, length = 255)
@@ -54,9 +55,11 @@ public class User {
     private BigDecimal longitude;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "is_verified", nullable = false)
+    @Builder.Default
     private Boolean isVerified = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)

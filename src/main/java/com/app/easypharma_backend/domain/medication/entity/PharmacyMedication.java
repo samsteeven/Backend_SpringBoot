@@ -3,7 +3,7 @@ package com.app.easypharma_backend.domain.medication.entity;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,8 +24,7 @@ import java.util.UUID;
 public class PharmacyMedication {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
@@ -41,9 +40,11 @@ public class PharmacyMedication {
     private BigDecimal price;
 
     @Column(name = "stock_quantity", nullable = false)
+    @Builder.Default
     private Integer stockQuantity = 0;
 
     @Column(name = "is_available", nullable = false)
+    @Builder.Default
     private Boolean isAvailable = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)

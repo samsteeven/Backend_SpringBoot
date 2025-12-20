@@ -43,6 +43,7 @@ public class Medication {
     @Column(name = "notice_pdf_url", length = 500)
     private String noticePdfUrl;
 
+    @Builder.Default
     @Column(name = "requires_prescription", nullable = false)
     private Boolean requiresPrescription = false;
 

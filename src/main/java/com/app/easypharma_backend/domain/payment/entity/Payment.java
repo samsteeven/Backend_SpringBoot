@@ -39,6 +39,7 @@ public class Payment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
     private com.app.easypharma_backend.domain.payment.entity.PaymentStatus status = com.app.easypharma_backend.domain.payment.entity.PaymentStatus.PENDING;
 
     @Column(name = "transaction_id", unique = true, length = 100)

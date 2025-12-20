@@ -3,7 +3,7 @@ package com.app.easypharma_backend.domain.pharmacy.entity;
 import com.app.easypharma_backend.domain.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,8 +19,7 @@ import java.util.UUID;
 public class Pharmacy {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
@@ -57,6 +56,7 @@ public class Pharmacy {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
     private PharmacyStatus status = PharmacyStatus.PENDING;
 
     @Column(name = "license_document_url", nullable = false, length = 500)

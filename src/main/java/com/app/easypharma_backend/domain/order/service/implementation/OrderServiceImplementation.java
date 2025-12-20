@@ -17,11 +17,13 @@ import com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -38,13 +40,17 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     private final OrderMapper orderMapper;
 
     @Override
-    public OrderDTO createOrder(UUID patientId, CreateOrderDTO createOrderDTO) {
+    public OrderDTO createOrder(@NonNull UUID patientId, @NonNull CreateOrderDTO createOrderDTO) {
+        Objects.requireNonNull(patientId, "Patient ID cannot be null");
+        Objects.requireNonNull(createOrderDTO, "CreateOrderDTO cannot be null");
+
         // 1. Validate Patient
         User patient = userRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         // 2. Validate Pharmacy
-        Pharmacy pharmacy = pharmacyRepository.findById(createOrderDTO.getPharmacyId())
+        Pharmacy pharmacy = pharmacyRepository
+                .findById(Objects.requireNonNull(createOrderDTO.getPharmacyId(), "Pharmacy ID cannot be null"))
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
 
         // 3. Create Order Entity
@@ -72,7 +78,7 @@ public class OrderServiceImplementation implements OrderServiceInterface {
 
         for (CreateOrderDTO.CreateOrderItemDTO itemDTO : createOrderDTO.getItems()) {
             PharmacyMedication pharmacyMedication = pharmacyMedicationRepository.findByPharmacyIdAndMedicationId(
-                    pharmacy.getId(), itemDTO.getMedicationId())
+                    pharmacy.getId(), Objects.requireNonNull(itemDTO.getMedicationId(), "Medication ID cannot be null"))
                     .orElseThrow(() -> new RuntimeException("Medication not found in this pharmacy"));
 
             if (!pharmacyMedication.getIsAvailable() || pharmacyMedication.getStockQuantity() < itemDTO.getQuantity()) {
@@ -102,24 +108,30 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     }
 
     @Override
-    public OrderDTO getOrderById(UUID orderId) {
+    public OrderDTO getOrderById(@NonNull UUID orderId) {
+        Objects.requireNonNull(orderId, "Order ID cannot be null");
         return orderRepository.findById(orderId)
                 .map(orderMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
     @Override
-    public List<OrderDTO> getPatientOrders(UUID patientId) {
+    public List<OrderDTO> getPatientOrders(@NonNull UUID patientId) {
+        Objects.requireNonNull(patientId, "Patient ID cannot be null");
         return orderMapper.toDTOList(orderRepository.findByPatientIdOrderByCreatedAtDesc(patientId));
     }
 
     @Override
-    public List<OrderDTO> getPharmacyOrders(UUID pharmacyId) {
+    public List<OrderDTO> getPharmacyOrders(@NonNull UUID pharmacyId) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
         return orderMapper.toDTOList(orderRepository.findByPharmacyIdOrderByCreatedAtDesc(pharmacyId));
     }
 
     @Override
-    public OrderDTO updateOrderStatus(UUID orderId, OrderStatus status) {
+    public OrderDTO updateOrderStatus(@NonNull UUID orderId, @NonNull OrderStatus status) {
+        Objects.requireNonNull(orderId, "Order ID cannot be null");
+        Objects.requireNonNull(status, "Order status cannot be null");
+
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -163,7 +175,11 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     }
 
     @Override
-    public void validateStockAvailability(UUID pharmacyId, List<CreateOrderDTO.CreateOrderItemDTO> items) {
+    public void validateStockAvailability(@NonNull UUID pharmacyId,
+            @NonNull List<CreateOrderDTO.CreateOrderItemDTO> items) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        Objects.requireNonNull(items, "Items list cannot be null");
+
         for (CreateOrderDTO.CreateOrderItemDTO itemDTO : items) {
             PharmacyMedication pharmacyMedication = pharmacyMedicationRepository.findByPharmacyIdAndMedicationId(
                     pharmacyId, itemDTO.getMedicationId())

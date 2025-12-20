@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.UUID;
@@ -38,14 +39,14 @@ public class PharmacyController {
         @ApiResponse(responseCode = "404", description = "Pharmacie introuvable")
         @GetMapping("/{id}")
         public ResponseEntity<PharmacyDTO> getPharmacyById(
-                        @Parameter(description = "ID de la pharmacie", required = true) @PathVariable UUID id) {
+                        @Parameter(description = "ID de la pharmacie", required = true) @PathVariable @NonNull UUID id) {
                 return ResponseEntity.ok(pharmacyService.getPharmacyById(id));
         }
 
         @Operation(summary = "Récupérer une pharmacie par numéro de licence", description = "Recherche d’une pharmacie en utilisant son numéro de licence unique.")
         @GetMapping("/by-license/{licenseNumber}")
         public ResponseEntity<PharmacyDTO> getByLicenseNumber(
-                        @Parameter(description = "Numéro de licence de la pharmacie", required = true) @PathVariable String licenseNumber) {
+                        @Parameter(description = "Numéro de licence de la pharmacie", required = true) @PathVariable @NonNull String licenseNumber) {
                 return ResponseEntity.ok(pharmacyService.getPharmacyByLicenseNumber(licenseNumber));
         }
 
@@ -54,7 +55,7 @@ public class PharmacyController {
         @PostMapping
         @PreAuthorize("hasRole('PHARMACIST')")
         public ResponseEntity<PharmacyDTO> createPharmacy(
-                        @RequestBody PharmacyDTO pharmacyDTO) {
+                        @RequestBody @NonNull PharmacyDTO pharmacyDTO) {
                 PharmacyDTO created = pharmacyService.createPharmacy(pharmacyDTO);
                 return ResponseEntity.status(HttpStatus.CREATED).body(created);
         }
@@ -63,8 +64,8 @@ public class PharmacyController {
         @PutMapping("/{id}")
         @PreAuthorize("hasRole('PHARMACIST') or hasRole('ADMIN')")
         public ResponseEntity<PharmacyDTO> updatePharmacy(
-                        @PathVariable UUID id,
-                        @RequestBody PharmacyDTO pharmacyDTO) {
+                        @PathVariable @NonNull UUID id,
+                        @RequestBody @NonNull PharmacyDTO pharmacyDTO) {
                 return ResponseEntity.ok(pharmacyService.updatePharmacy(id, pharmacyDTO));
         }
 
@@ -72,38 +73,38 @@ public class PharmacyController {
         @PatchMapping("/{id}/status")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<PharmacyDTO> changeStatus(
-                        @PathVariable UUID id,
-                        @RequestParam PharmacyStatus status) {
+                        @PathVariable @NonNull UUID id,
+                        @RequestParam @NonNull PharmacyStatus status) {
                 return ResponseEntity.ok(pharmacyService.changeStatus(id, status));
         }
 
         @Operation(summary = "Rechercher par ville", description = "Retourne la liste des pharmacies situées dans une ville donnée.")
         @GetMapping("/search/by-city")
         public ResponseEntity<List<PharmacyDTO>> findByCity(
-                        @RequestParam String city) {
+                        @RequestParam @NonNull String city) {
                 return ResponseEntity.ok(pharmacyService.findByCity(city));
         }
 
         @Operation(summary = "Rechercher par statut", description = "Retourne la liste des pharmacies pour un statut donné.")
         @GetMapping("/search/by-status")
         public ResponseEntity<List<PharmacyDTO>> findByStatus(
-                        @RequestParam PharmacyStatus status) {
+                        @RequestParam @NonNull PharmacyStatus status) {
                 return ResponseEntity.ok(pharmacyService.findByStatus(status));
         }
 
         @Operation(summary = "Pharmacies approuvées par ville", description = "Retourne les pharmacies avec statut APPROVED dans une ville donnée.")
         @GetMapping("/approved/by-city")
         public ResponseEntity<List<PharmacyDTO>> findApprovedByCity(
-                        @RequestParam String city) {
+                        @RequestParam @NonNull String city) {
                 return ResponseEntity.ok(pharmacyService.findApprovedByCity(city));
         }
 
         @Operation(summary = "Pharmacies à proximité", description = "Recherche les pharmacies approuvées dans un rayon donné (km) à partir d’une latitude/longitude.")
         @GetMapping("/nearby")
         public ResponseEntity<List<PharmacyDTO>> findNearby(
-                        @RequestParam Double latitude,
-                        @RequestParam Double longitude,
-                        @RequestParam Double radiusKm) {
+                        @RequestParam @NonNull Double latitude,
+                        @RequestParam @NonNull Double longitude,
+                        @RequestParam @NonNull Double radiusKm) {
                 return ResponseEntity.ok(
                                 pharmacyService.findNearbyPharmacies(latitude, longitude, radiusKm));
         }
@@ -111,7 +112,7 @@ public class PharmacyController {
         @Operation(summary = "Recherche par nom", description = "Recherche des pharmacies par nom (recherche partielle, insensible à la casse).")
         @GetMapping("/search/by-name")
         public ResponseEntity<List<PharmacyDTO>> searchByName(
-                        @RequestParam String name) {
+                        @RequestParam @NonNull String name) {
                 return ResponseEntity.ok(pharmacyService.searchByName(name));
         }
 
@@ -119,7 +120,7 @@ public class PharmacyController {
         @ApiResponse(responseCode = "204", description = "Pharmacie supprimée")
         @DeleteMapping("/{id}")
         @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<Void> deletePharmacy(@PathVariable UUID id) {
+        public ResponseEntity<Void> deletePharmacy(@PathVariable @NonNull UUID id) {
                 pharmacyService.deletePharmacy(id);
                 return ResponseEntity.noContent().build();
         }

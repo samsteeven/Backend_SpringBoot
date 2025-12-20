@@ -13,8 +13,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -29,7 +31,7 @@ public class OrderController {
     @Operation(summary = "Créer une commande", description = "Le patient crée une commande")
     @PostMapping
     @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderDTO createOrderDTO) {
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody @NonNull CreateOrderDTO createOrderDTO) {
         UUID patientId = getCurrentUserId();
         return ResponseEntity.ok(orderService.createOrder(patientId, createOrderDTO));
     }
@@ -45,17 +47,19 @@ public class OrderController {
     @Operation(summary = "Commandes de ma pharmacie (Pharmacien)", description = "Récupère les commandes reçues par la pharmacie du pharmacien connecté")
     @GetMapping("/pharmacy-orders/{pharmacyId}")
     @PreAuthorize("hasRole('PHARMACIST')")
-    public ResponseEntity<List<OrderDTO>> getPharmacyOrders(@PathVariable UUID pharmacyId) {
+    public ResponseEntity<List<OrderDTO>> getPharmacyOrders(@PathVariable @NonNull UUID pharmacyId) {
         // En théorie, on devrait vérifier si le pharmacien connecté est bien proprio de
         // cette pharmacie
         // Pour l'instant on laisse passer si Role Pharmacist
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
         return ResponseEntity.ok(orderService.getPharmacyOrders(pharmacyId));
     }
 
     @Operation(summary = "Détails commande", description = "Récupère les détails d'une commande")
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()") // Patient or Pharmacist
-    public ResponseEntity<OrderDTO> getOrder(@PathVariable UUID id) {
+    public ResponseEntity<OrderDTO> getOrder(@PathVariable @NonNull UUID id) {
+        Objects.requireNonNull(id, "Order ID cannot be null");
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
@@ -63,16 +67,20 @@ public class OrderController {
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('PHARMACIST') or hasRole('ADMIN')")
     public ResponseEntity<OrderDTO> updateStatus(
-            @PathVariable UUID id,
-            @RequestParam OrderStatus status) {
+            @PathVariable @NonNull UUID id,
+            @RequestParam @NonNull OrderStatus status) {
+        Objects.requireNonNull(id, "Order ID cannot be null");
+        Objects.requireNonNull(status, "Order status cannot be null");
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
 
+    @NonNull
     private UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        return userRepository.findByEmail(email)
+        UUID id = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
+        return Objects.requireNonNull(id, "User ID cannot be null");
     }
 }

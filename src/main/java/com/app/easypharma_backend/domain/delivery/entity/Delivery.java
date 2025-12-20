@@ -34,6 +34,7 @@ public class Delivery {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
     private DeliveryStatus status = DeliveryStatus.ASSIGNED;
 
     @Column(name = "current_latitude", precision = 10, scale = 8)

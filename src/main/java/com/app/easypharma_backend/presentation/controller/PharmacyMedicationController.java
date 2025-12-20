@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,7 +24,7 @@ public class PharmacyMedicationController {
 
     @Operation(summary = "Lister l'inventaire", description = "Récupère tous les médicaments disponibles dans une pharmacie")
     @GetMapping
-    public ResponseEntity<List<PharmacyMedicationDTO>> getInventory(@PathVariable UUID pharmacyId) {
+    public ResponseEntity<List<PharmacyMedicationDTO>> getInventory(@PathVariable @NonNull UUID pharmacyId) {
         return ResponseEntity.ok(pharmacyMedicationService.getPharmacyInventory(pharmacyId));
     }
 
@@ -31,10 +32,10 @@ public class PharmacyMedicationController {
     @PostMapping
     @PreAuthorize("hasRole('PHARMACIST')")
     public ResponseEntity<PharmacyMedicationDTO> addMedication(
-            @PathVariable UUID pharmacyId,
-            @RequestParam UUID medicationId,
-            @RequestParam BigDecimal price,
-            @RequestParam Integer stock) {
+            @PathVariable @NonNull UUID pharmacyId,
+            @RequestParam @NonNull UUID medicationId,
+            @RequestParam @NonNull BigDecimal price,
+            @RequestParam @NonNull Integer stock) {
         return ResponseEntity
                 .ok(pharmacyMedicationService.addMedicationToPharmacy(pharmacyId, medicationId, price, stock));
     }
@@ -43,9 +44,9 @@ public class PharmacyMedicationController {
     @PatchMapping("/{medicationId}/stock")
     @PreAuthorize("hasRole('PHARMACIST')")
     public ResponseEntity<PharmacyMedicationDTO> updateStock(
-            @PathVariable UUID pharmacyId,
-            @PathVariable UUID medicationId,
-            @RequestParam Integer quantity) {
+            @PathVariable @NonNull UUID pharmacyId,
+            @PathVariable @NonNull UUID medicationId,
+            @RequestParam @NonNull Integer quantity) {
         return ResponseEntity.ok(pharmacyMedicationService.updateStock(pharmacyId, medicationId, quantity));
     }
 
@@ -53,9 +54,9 @@ public class PharmacyMedicationController {
     @PatchMapping("/{medicationId}/price")
     @PreAuthorize("hasRole('PHARMACIST')")
     public ResponseEntity<PharmacyMedicationDTO> updatePrice(
-            @PathVariable UUID pharmacyId,
-            @PathVariable UUID medicationId,
-            @RequestParam BigDecimal price) {
+            @PathVariable @NonNull UUID pharmacyId,
+            @PathVariable @NonNull UUID medicationId,
+            @RequestParam @NonNull BigDecimal price) {
         return ResponseEntity.ok(pharmacyMedicationService.updatePrice(pharmacyId, medicationId, price));
     }
 
@@ -63,8 +64,8 @@ public class PharmacyMedicationController {
     @DeleteMapping("/{medicationId}")
     @PreAuthorize("hasRole('PHARMACIST')")
     public ResponseEntity<Void> removeMedication(
-            @PathVariable UUID pharmacyId,
-            @PathVariable UUID medicationId) {
+            @PathVariable @NonNull UUID pharmacyId,
+            @PathVariable @NonNull UUID medicationId) {
         pharmacyMedicationService.removeMedicationFromPharmacy(pharmacyId, medicationId);
         return ResponseEntity.noContent().build();
     }

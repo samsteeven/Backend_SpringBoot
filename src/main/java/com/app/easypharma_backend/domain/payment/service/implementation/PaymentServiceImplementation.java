@@ -19,6 +19,8 @@ import com.itextpdf.layout.properties.UnitValue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
+import java.util.Objects;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
@@ -34,8 +36,11 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
     private final OrderServiceInterface orderService; // To update status
 
     @Override
-    public Payment processPayment(PaymentRequestDTO request) {
-        Order order = orderRepository.findById(request.getOrderId())
+    public Payment processPayment(@NonNull PaymentRequestDTO request) {
+        Objects.requireNonNull(request, "Payment request cannot be null");
+        UUID orderId = Objects.requireNonNull(request.getOrderId(), "Order ID cannot be null");
+
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.DELIVERED) {
@@ -46,7 +51,7 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
         // In a real app, calls MTN/Orange API here.
         boolean isSuccess = true; // Always succeed for Demo
 
-        Payment payment = Payment.builder()
+        Payment payment = Objects.requireNonNull(Payment.builder()
                 .order(order)
                 .paymentMethod(request.getMethod())
                 .phoneNumber(request.getPhoneNumber())
@@ -54,19 +59,21 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
                 .status(isSuccess ? PaymentStatus.SUCCESS : PaymentStatus.FAILED)
                 .transactionId(UUID.randomUUID().toString())
                 .paidAt(LocalDateTime.now())
-                .build();
+                .build());
 
         Payment savedPayment = paymentRepository.save(payment);
 
         if (isSuccess) {
-            orderService.updateOrderStatus(order.getId(), OrderStatus.PAID);
+            orderService.updateOrderStatus(Objects.requireNonNull(order.getId()), OrderStatus.PAID);
         }
 
         return savedPayment;
     }
 
     @Override
-    public byte[] generateReceiptPdf(UUID paymentId) {
+    public byte[] generateReceiptPdf(@NonNull UUID paymentId) {
+        Objects.requireNonNull(paymentId, "Payment ID cannot be null");
+
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 

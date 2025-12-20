@@ -6,6 +6,7 @@ import com.app.easypharma_backend.domain.order.entity.OrderStatus;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.lang.NonNull;
 
 public interface OrderServiceInterface {
 
@@ -13,30 +14,30 @@ public interface OrderServiceInterface {
      * Create a new order for the authenticated patient.
      * Validates stock and pricing.
      */
-    OrderDTO createOrder(UUID patientId, CreateOrderDTO createOrderDTO);
+    OrderDTO createOrder(@NonNull UUID patientId, @NonNull CreateOrderDTO createOrderDTO);
 
     /**
      * Get details of a specific order.
      */
-    OrderDTO getOrderById(UUID orderId);
+    OrderDTO getOrderById(@NonNull UUID orderId);
 
     /**
      * Get all orders for a specific patient.
      */
-    List<OrderDTO> getPatientOrders(UUID patientId);
+    List<OrderDTO> getPatientOrders(@NonNull UUID patientId);
 
     /**
      * Get all orders for a specific pharmacy.
      */
-    List<OrderDTO> getPharmacyOrders(UUID pharmacyId);
+    List<OrderDTO> getPharmacyOrders(@NonNull UUID pharmacyId);
 
     /**
      * Update order status (e.g., CONFIRMED, DELIVERED).
      */
-    OrderDTO updateOrderStatus(UUID orderId, OrderStatus status);
+    OrderDTO updateOrderStatus(@NonNull UUID orderId, @NonNull OrderStatus status);
 
     /**
      * Verify stock availability for a list of items.
      */
-    void validateStockAvailability(UUID pharmacyId, List<CreateOrderDTO.CreateOrderItemDTO> items);
+    void validateStockAvailability(@NonNull UUID pharmacyId, @NonNull List<CreateOrderDTO.CreateOrderItemDTO> items);
 }

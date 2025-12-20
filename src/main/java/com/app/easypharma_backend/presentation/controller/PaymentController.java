@@ -10,7 +10,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -23,18 +25,19 @@ public class PaymentController {
 
     @Operation(summary = "Effectuer un paiement", description = "Simule un paiement Mobile Money (MTN/Orange)")
     @PostMapping("/process")
-    public ResponseEntity<Payment> processPayment(@RequestBody PaymentRequestDTO request) {
+    public ResponseEntity<Payment> processPayment(@RequestBody @NonNull PaymentRequestDTO request) {
         return ResponseEntity.ok(paymentService.processPayment(request));
     }
 
     @Operation(summary = "Télécharger le reçu", description = "Génère un PDF pour un paiement réussi")
     @GetMapping("/{paymentId}/receipt")
-    public ResponseEntity<byte[]> downloadReceipt(@PathVariable UUID paymentId) {
+    public ResponseEntity<byte[]> downloadReceipt(@PathVariable @NonNull UUID paymentId) {
+        Objects.requireNonNull(paymentId, "Payment ID cannot be null");
         byte[] pdfBytes = paymentService.generateReceiptPdf(paymentId);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=receipt_" + paymentId + ".pdf")
-                .contentType(MediaType.APPLICATION_PDF)
+                .contentType(Objects.requireNonNull(MediaType.APPLICATION_PDF))
                 .body(pdfBytes);
     }
 }

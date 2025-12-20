@@ -12,6 +12,7 @@ import com.app.easypharma_backend.domain.pharmacy.service.interfaces.PharmacySer
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,29 +33,24 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     }
 
     @Override
-    public PharmacyDTO getPharmacyById(UUID id) {
+    public PharmacyDTO getPharmacyById(@NonNull UUID id) {
         Pharmacy pharmacy = pharmacyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
         return pharmacyMapper.toDTO(pharmacy);
     }
 
     @Override
-    public PharmacyDTO getPharmacyByLicenseNumber(String licenseNumber) {
+    public PharmacyDTO getPharmacyByLicenseNumber(@NonNull String licenseNumber) {
         Pharmacy pharmacy = pharmacyRepository.findByLicenseNumber(licenseNumber)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
         return pharmacyMapper.toDTO(pharmacy);
     }
 
     @Override
-    public PharmacyDTO createPharmacy(PharmacyDTO pharmacyDTO) {
+    public PharmacyDTO createPharmacy(@NonNull PharmacyDTO pharmacyDTO) {
         // 1. Validate License uniqueness
         if (pharmacyRepository.existsByLicenseNumber(pharmacyDTO.getLicenseNumber())) {
             throw new RuntimeException("License number already exists");
-        }
-
-        // 2. Validate User
-        if (pharmacyDTO.getUserId() == null) {
-            throw new RuntimeException("User ID is required to create a pharmacy");
         }
 
         User user = userRepository.findById(pharmacyDTO.getUserId())
@@ -79,7 +75,7 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     }
 
     @Override
-    public PharmacyDTO updatePharmacy(UUID id, PharmacyDTO pharmacyDTO) {
+    public PharmacyDTO updatePharmacy(@NonNull UUID id, @NonNull PharmacyDTO pharmacyDTO) {
         // 1. Récupérer l'entité depuis le repo
         Pharmacy existing = pharmacyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
@@ -95,7 +91,7 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     }
 
     @Override
-    public PharmacyDTO changeStatus(UUID id, PharmacyStatus status) {
+    public PharmacyDTO changeStatus(@NonNull UUID id, @NonNull PharmacyStatus status) {
         Pharmacy pharmacy = pharmacyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
         pharmacy.setStatus(status);
@@ -107,33 +103,34 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     }
 
     @Override
-    public List<PharmacyDTO> findByCity(String city) {
+    public List<PharmacyDTO> findByCity(@NonNull String city) {
         return pharmacyMapper.toDTOList(pharmacyRepository.findByCity(city));
     }
 
     @Override
-    public List<PharmacyDTO> findByStatus(PharmacyStatus status) {
+    public List<PharmacyDTO> findByStatus(@NonNull PharmacyStatus status) {
         return pharmacyMapper.toDTOList(pharmacyRepository.findByStatus(status));
     }
 
     @Override
-    public List<PharmacyDTO> findApprovedByCity(String city) {
+    public List<PharmacyDTO> findApprovedByCity(@NonNull String city) {
         return pharmacyMapper.toDTOList(pharmacyRepository.findByStatusAndCity(PharmacyStatus.APPROVED, city));
     }
 
     @Override
-    public List<PharmacyDTO> findNearbyPharmacies(Double latitude, Double longitude, Double radiusKm) {
+    public List<PharmacyDTO> findNearbyPharmacies(@NonNull Double latitude, @NonNull Double longitude,
+            @NonNull Double radiusKm) {
         return pharmacyMapper.toDTOList(
                 pharmacyRepository.findNearbyPharmacies(latitude, longitude, radiusKm));
     }
 
     @Override
-    public List<PharmacyDTO> searchByName(String name) {
+    public List<PharmacyDTO> searchByName(@NonNull String name) {
         return pharmacyMapper.toDTOList(pharmacyRepository.searchByName(name));
     }
 
     @Override
-    public void deletePharmacy(UUID id) {
+    public void deletePharmacy(@NonNull UUID id) {
         if (!pharmacyRepository.existsById(id)) {
             throw new RuntimeException("Pharmacy not found");
         }
@@ -141,7 +138,7 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     }
 
     @Override
-    public boolean existsByLicenseNumber(String licenseNumber) {
+    public boolean existsByLicenseNumber(@NonNull String licenseNumber) {
         return pharmacyRepository.existsByLicenseNumber(licenseNumber);
     }
 }
