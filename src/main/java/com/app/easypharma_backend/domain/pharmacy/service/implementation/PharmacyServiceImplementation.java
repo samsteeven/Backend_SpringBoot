@@ -66,11 +66,15 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
             throw new RuntimeException("User already has a registered pharmacy");
         }
 
-        // 5. Create Entity
         Pharmacy pharmacy = pharmacyMapper.toEntity(pharmacyDTO);
         pharmacy.setUser(user);
 
         Pharmacy saved = pharmacyRepository.save(pharmacy);
+
+        // Update user to link to the new pharmacy
+        user.setPharmacy(saved);
+        userRepository.save(user);
+
         return pharmacyMapper.toDTO(saved);
     }
 

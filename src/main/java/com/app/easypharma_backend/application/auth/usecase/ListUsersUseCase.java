@@ -26,10 +26,20 @@ public class ListUsersUseCase {
      * Liste les utilisateurs avec pagination
      */
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> execute(Pageable pageable) {
-        log.info("Récupération de la liste des utilisateurs avec pagination");
+    public PageResponse<UserResponse> execute(Pageable pageable,
+            com.app.easypharma_backend.domain.auth.entity.UserRole role, java.util.UUID pharmacyId) {
+        log.info("Récupération de la liste des utilisateurs avec pagination (role={}, pharmacyId={})", role,
+                pharmacyId);
 
-        Page<User> usersPage = userRepository.findAll(pageable);
+        Page<User> usersPage;
+
+        if (pharmacyId != null) {
+            usersPage = userRepository.findByPharmacyId(pharmacyId, pageable);
+        } else if (role != null) {
+            usersPage = userRepository.findByRole(role, pageable);
+        } else {
+            usersPage = userRepository.findAll(pageable);
+        }
 
         return PageResponse.<UserResponse>builder()
                 .content(usersPage.getContent().stream()

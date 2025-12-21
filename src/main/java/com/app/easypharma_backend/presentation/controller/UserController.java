@@ -2,6 +2,7 @@ package com.app.easypharma_backend.presentation.controller;
 
 import com.app.easypharma_backend.application.auth.dto.request.ChangeUserRoleRequest;
 import com.app.easypharma_backend.application.auth.dto.request.UpdateUserRequest;
+import com.app.easypharma_backend.application.auth.dto.request.ChangePasswordRequest;
 import com.app.easypharma_backend.application.auth.dto.response.UserResponse;
 import com.app.easypharma_backend.application.auth.usecase.*;
 import com.app.easypharma_backend.application.common.dto.PageResponse;
@@ -42,6 +43,8 @@ public class UserController {
         private final UpdateUserByIdUseCase updateUserByIdUseCase;
         private final DeleteUserByIdUseCase deleteUserByIdUseCase;
         private final ChangeUserRoleUseCase changeUserRoleUseCase;
+        private final ChangeUserPasswordUseCase changeUserPasswordUseCase;
+        private final com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository pharmacyRepository;
         private final JwtService jwtService;
 
         /**
@@ -128,10 +131,35 @@ public class UserController {
         }
 
         /**
+         * Change le mot de passe de l'utilisateur connecté
+         */
+        @Operation(summary = "Change le mot de passe de l'utilisateur connecté", description = "Permet à un utilisateur authentifié de modifier son mot de passe", security = @SecurityRequirement(name = "bearerAuth"))
+        @ApiResponses(value = {
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Mot de passe modifié avec succès"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Requête invalide - Ancien mot de passe incorrect ou nouveau mot de passe invalide"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Non autorisé - Jeton invalide ou manquant")
+        })
+        @PatchMapping("/me/password")
+        public ResponseEntity<com.app.easypharma_backend.application.common.dto.ApiResponse<Void>> changePassword(
+                        @Parameter(description = "Jeton d'authentification Bearer", required = true) @RequestHeader("Authorization") String authHeader,
+                        @Parameter(description = "Données de changement de mot de passe", required = true) @Valid @RequestBody ChangePasswordRequest request) {
+                String token = authHeader.replace("Bearer ", "");
+                String email = jwtService.extractEmail(token);
+
+                changeUserPasswordUseCase.execute(email, request);
+                return ResponseEntity.ok(
+                                com.app.easypharma_backend.application.common.dto.ApiResponse.success(null,
+                                                "Mot de passe modifié avec succès"));
+        }
+
+        // ... existing constructor implicitly handled by @RequiredArgsConstructor ...
+
+        /**
          * Liste tous les utilisateurs (réservé aux administrateurs)
+         * Peut être filtré par rôle
          */
         @PreAuthorize("hasRole('SUPER_ADMIN')")
-        @Operation(summary = "Liste paginée des utilisateurs (ADMIN)", description = "Permet à un administrateur de récupérer la liste paginée de tous les utilisateurs", security = @SecurityRequirement(name = "bearerAuth"))
+        @Operation(summary = "Liste paginée des utilisateurs (ADMIN)", description = "Permet à un administrateur de récupérer la liste paginée de tous les utilisateurs, avec filtre optionnel par rôle", security = @SecurityRequirement(name = "bearerAuth"))
         @ApiResponses(value = {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Liste des utilisateurs récupérée avec succès", content = @Content(mediaType = "application/json", schema = @Schema(implementation = PageResponse.class))),
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Non autorisé - Jeton invalide ou manquant"),
@@ -140,12 +168,48 @@ public class UserController {
         @GetMapping
         public ResponseEntity<com.app.easypharma_backend.application.common.dto.ApiResponse<PageResponse<UserResponse>>> getAllUsers(
                         @Parameter(description = "Numéro de page (commence à 0)", example = "0") @RequestParam(defaultValue = "0") int page,
-                        @Parameter(description = "Taille de la page", example = "10") @RequestParam(defaultValue = "10") int size) {
+                        @Parameter(description = "Taille de la page", example = "10") @RequestParam(defaultValue = "10") int size,
+                        @Parameter(description = "Filtrer par rôle (optionnel)", required = false) @RequestParam(required = false) com.app.easypharma_backend.domain.auth.entity.UserRole role) {
                 Pageable pageable = PageRequest.of(page, size);
-                PageResponse<UserResponse> response = listUsersUseCase.execute(pageable);
+                PageResponse<UserResponse> response = listUsersUseCase.execute(pageable, role, null);
                 return ResponseEntity.ok(
                                 com.app.easypharma_backend.application.common.dto.ApiResponse.success(response,
                                                 "Liste des utilisateurs"));
+        }
+
+        /**
+         * Liste les employés de ma pharmacie (réservé aux PHARMACY_ADMIN)
+         */
+        @PreAuthorize("hasRole('PHARMACY_ADMIN')")
+        @Operation(summary = "Liste les employés de ma pharmacie", description = "Permet à un administrateur de pharmacie de voir ses employés", security = @SecurityRequirement(name = "bearerAuth"))
+        @GetMapping("/my-pharmacy")
+        public ResponseEntity<com.app.easypharma_backend.application.common.dto.ApiResponse<PageResponse<UserResponse>>> getMyPharmacyUsers(
+                        @Parameter(description = "Numéro de page", example = "0") @RequestParam(defaultValue = "0") int page,
+                        @Parameter(description = "Taille de la page", example = "10") @RequestParam(defaultValue = "10") int size,
+                        @Parameter(description = "Jeton d'authentification", required = true) @RequestHeader("Authorization") String authHeader) {
+
+                String token = authHeader.replace("Bearer ", "");
+                String email = jwtService.extractEmail(token);
+                // On récupère l'ID de l'utilisateur connecté via un usecase existant ou repo
+                // (ici getUserProfileUseCase pour faire simple et sûr)
+                UserResponse currentUser = getUserProfileUseCase.execute(email);
+                UUID userId = currentUser.getId();
+
+                // Trouver la pharmacie du user (On suppose qu'il en a une car PHARMACY_ADMIN)
+                var pharmacy = pharmacyRepository.findByUserId(userId)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Aucune pharmacie associée à ce compte administrateur"));
+
+                Pageable pageable = PageRequest.of(page, size);
+                // On filtre par pharmacyId, et on met role à null pour avoir tous les types
+                // d'employés (employee + delivery)
+                // Ou on pourrait vouloir filtrer. Pour l'instant on liste tout le monde de la
+                // pharmacie.
+                PageResponse<UserResponse> response = listUsersUseCase.execute(pageable, null, pharmacy.getId());
+
+                return ResponseEntity.ok(
+                                com.app.easypharma_backend.application.common.dto.ApiResponse.success(response,
+                                                "Liste des employés de la pharmacie"));
         }
 
         /**

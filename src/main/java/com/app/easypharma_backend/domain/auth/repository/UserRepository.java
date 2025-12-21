@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     // Recherche par email
-    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.pharmacy WHERE LOWER(u.email) = LOWER(:email)")
     Optional<User> findByEmail(@Param("email") String email);
 
     // Recherche par téléphone
@@ -60,4 +60,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     // Recherche livreurs actifs d'une pharmacie
     @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'DELIVERY' AND u.isActive = true")
     List<User> findActiveDeliveryPersonsByPharmacy(@Param("pharmacyId") UUID pharmacyId);
+
+    // Recherche paginée par rôle
+    org.springframework.data.domain.Page<User> findByRole(UserRole role,
+            org.springframework.data.domain.Pageable pageable);
+
+    // Recherche paginée par pharmacie
+    org.springframework.data.domain.Page<User> findByPharmacyId(UUID pharmacyId,
+            org.springframework.data.domain.Pageable pageable);
 }

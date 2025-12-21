@@ -22,8 +22,7 @@ public class RegisterRequest {
         private String email;
 
         @NotBlank(message = "Le mot de passe est obligatoire")
-        @Size(min = 4, message = "Le mot de passe doit contenir au moins 8 caractères")
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre")
+        @Size(min = 4, message = "Le mot de passe doit contenir au moins 4 caractères")
         @Schema(description = "Mot de passe de l'utilisateur (doit contenir au moins une minuscule, une majuscule et un chiffre)", example = "MotDePasse123", requiredMode = Schema.RequiredMode.REQUIRED)
         private String password;
 
@@ -39,7 +38,7 @@ public class RegisterRequest {
 
         @NotBlank(message = "Le numéro de téléphone est obligatoire")
         @Size(min = 9, max = 9, message = "Le numero de téléphone doit contenir 09 caractères")
-        @Schema(description = "Numéro de téléphone de l'utilisateur", example = "+33123456789", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "Numéro de téléphone de l'utilisateur", example = "653456789", requiredMode = Schema.RequiredMode.REQUIRED)
         private String phone;
 
         @NotNull(message = "Le rôle est obligatoire")

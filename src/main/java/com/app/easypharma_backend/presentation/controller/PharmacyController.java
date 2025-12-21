@@ -18,6 +18,7 @@ import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.UUID;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/pharmacies")
@@ -26,6 +27,9 @@ import java.util.UUID;
 public class PharmacyController {
 
         private final PharmacyServiceInterface pharmacyService;
+        private final com.app.easypharma_backend.infrastructure.security.JwtService jwtService;
+        private final com.app.easypharma_backend.application.auth.usecase.GetUserProfileUseCase getUserProfileUseCase;
+        private final com.app.easypharma_backend.infrastructure.storage.FileStorageService fileStorageService;
 
         @Operation(summary = "Lister toutes les pharmacies", description = "Retourne la liste complète des pharmacies avec leurs informations.")
         @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès", content = @Content(schema = @Schema(implementation = PharmacyDTO.class)))
@@ -52,10 +56,22 @@ public class PharmacyController {
 
         @Operation(summary = "Créer une nouvelle pharmacie", description = "Crée un enregistrement de pharmacie en attente de validation. Nécessite le rôle PHARMACIST.")
         @ApiResponse(responseCode = "201", description = "Pharmacie créée")
-        @PostMapping
+        @PostMapping(consumes = { org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE })
         @PreAuthorize("hasRole('PHARMACY_ADMIN')")
         public ResponseEntity<PharmacyDTO> createPharmacy(
-                        @RequestBody @NonNull PharmacyDTO pharmacyDTO) {
+                        @Parameter(description = "Jeton d'authentification Bearer", required = true) @RequestHeader("Authorization") String authHeader,
+                        @Parameter(description = "Données de la pharmacie", required = true) @RequestPart("pharmacy") @Valid PharmacyDTO pharmacyDTO,
+                        @Parameter(description = "Document de licence (PDF/Image)", required = true) @RequestPart("licenseDocument") org.springframework.web.multipart.MultipartFile licenseDocument) {
+                String token = authHeader.replace("Bearer ", "");
+                String email = jwtService.extractEmail(token);
+                var userProfile = getUserProfileUseCase.execute(email);
+
+                pharmacyDTO.setUserId(userProfile.getId());
+
+                // Store the license document
+                String licenseUrl = fileStorageService.storeFile(licenseDocument, "documents");
+                pharmacyDTO.setLicenseDocumentUrl(licenseUrl);
+
                 PharmacyDTO created = pharmacyService.createPharmacy(pharmacyDTO);
                 return ResponseEntity.status(HttpStatus.CREATED).body(created);
         }

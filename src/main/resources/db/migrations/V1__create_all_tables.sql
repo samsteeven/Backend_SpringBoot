@@ -11,11 +11,12 @@ CREATE TABLE users (
                        first_name VARCHAR(100) NOT NULL,
                        last_name VARCHAR(100) NOT NULL,
                        phone VARCHAR(20) NOT NULL UNIQUE,
-                       role VARCHAR(20) NOT NULL CHECK (role IN ('PATIENT', 'PHARMACIST', 'DELIVERY', 'ADMIN')),
+                       role VARCHAR(20) NOT NULL CHECK (role IN ('SUPER_ADMIN', 'PHARMACY_ADMIN', 'PHARMACY_EMPLOYEE', 'PATIENT', 'DELIVERY')),
                        address TEXT,
                        city VARCHAR(100),
                        latitude DECIMAL(10, 8) CHECK (latitude BETWEEN -90 AND 90),
                        longitude DECIMAL(11, 8) CHECK (longitude BETWEEN -180 AND 180),
+                       pharmacy_id UUID,
                        is_active BOOLEAN NOT NULL DEFAULT TRUE,
                        is_verified BOOLEAN NOT NULL DEFAULT FALSE,
                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -25,6 +26,7 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_phone ON users(phone);
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_pharmacy_id ON users(pharmacy_id);
 
 -- Table: refresh_tokens
 CREATE TABLE refresh_tokens (
@@ -62,6 +64,11 @@ CREATE TABLE pharmacies (
 CREATE INDEX idx_pharmacies_city ON pharmacies(city);
 CREATE INDEX idx_pharmacies_status ON pharmacies(status);
 CREATE INDEX idx_pharmacies_location ON pharmacies(latitude, longitude);
+
+-- Add foreign key constraint for users.pharmacy_id
+ALTER TABLE users
+    ADD CONSTRAINT fk_users_pharmacy
+        FOREIGN KEY (pharmacy_id) REFERENCES pharmacies(id) ON DELETE SET NULL;
 
 -- Table: medications
 CREATE TABLE medications (
@@ -276,7 +283,7 @@ VALUES (
            'Admin',
            'EasyPharma',
            '+237600000000',
-           'ADMIN',
+           'SUPER_ADMIN',
            TRUE,
            TRUE
        );
