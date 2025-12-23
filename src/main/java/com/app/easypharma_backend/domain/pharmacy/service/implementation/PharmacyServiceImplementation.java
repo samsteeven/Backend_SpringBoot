@@ -29,7 +29,8 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
 
     @Override
     public List<PharmacyDTO> getAllPharmacies() {
-        return pharmacyMapper.toDTOList(pharmacyRepository.findAll());
+        // Ne retourner que les pharmacies approuvées pour les patients
+        return pharmacyMapper.toDTOList(pharmacyRepository.findByStatus(PharmacyStatus.APPROVED));
     }
 
     @Override
@@ -130,7 +131,8 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
 
     @Override
     public List<PharmacyDTO> searchByName(@NonNull String name) {
-        return pharmacyMapper.toDTOList(pharmacyRepository.searchByName(name));
+        // Ne retourner que les pharmacies approuvées pour les patients
+        return pharmacyMapper.toDTOList(pharmacyRepository.searchByNameAndApproved(name));
     }
 
     @Override

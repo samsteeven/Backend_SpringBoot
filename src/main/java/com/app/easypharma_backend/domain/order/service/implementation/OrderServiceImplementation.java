@@ -53,6 +53,12 @@ public class OrderServiceImplementation implements OrderServiceInterface {
                 .findById(Objects.requireNonNull(createOrderDTO.getPharmacyId(), "Pharmacy ID cannot be null"))
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
 
+        // CRITICAL: Ensure pharmacy is APPROVED before allowing orders
+        if (pharmacy.getStatus() != com.app.easypharma_backend.domain.pharmacy.entity.PharmacyStatus.APPROVED) {
+            throw new RuntimeException(
+                    "Cannot create order: Pharmacy is not approved. Status: " + pharmacy.getStatus());
+        }
+
         // 3. Create Order Entity
         Order order = Order.builder()
                 .patient(patient)
