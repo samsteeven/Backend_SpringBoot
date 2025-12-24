@@ -6,11 +6,7 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(
-        componentModel = "spring",
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
-)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PharmacyMapper {
 
     /**
@@ -29,11 +25,13 @@ public interface PharmacyMapper {
      * Convertit un PharmacyDTO en entité Pharmacy (pour création)
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "user", ignore = true)  // Géré par la logique métier
+    @Mapping(target = "user", ignore = true) // Géré par la logique métier
     @Mapping(target = "status", constant = "PENDING")
-    @Mapping(target = "createdAt", ignore = true)  // Géré par @PrePersist
-    @Mapping(target = "updatedAt", ignore = true)  // Géré par @PrePersist/@PreUpdate
+    @Mapping(target = "createdAt", ignore = true) // Géré par @PrePersist
+    @Mapping(target = "updatedAt", ignore = true) // Géré par @PrePersist/@PreUpdate
     @Mapping(target = "validatedAt", ignore = true)
+    @Mapping(target = "averageRating", ignore = true)
+    @Mapping(target = "ratingCount", ignore = true)
     Pharmacy toEntity(PharmacyDTO dto);
 
     /**
@@ -47,5 +45,7 @@ public interface PharmacyMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "validatedAt", ignore = true)
+    @Mapping(target = "averageRating", ignore = true)
+    @Mapping(target = "ratingCount", ignore = true)
     void updateEntityFromDTO(PharmacyDTO dto, @MappingTarget Pharmacy pharmacy);
 }

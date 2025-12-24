@@ -39,6 +39,10 @@ public class PharmacyDTO {
 
     private String openingHours;
 
+    private Double averageRating;
+
+    private Integer ratingCount;
+
     private PharmacyStatus status;
 
     private String licenseDocumentUrl;

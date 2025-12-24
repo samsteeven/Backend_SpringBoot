@@ -47,6 +47,9 @@ public class Medication {
     @Column(name = "requires_prescription", nullable = false)
     private Boolean requiresPrescription = false;
 
+    @Column(name = "symptoms", columnDefinition = "TEXT")
+    private String symptoms;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
