@@ -78,6 +78,7 @@ public class PharmacyController {
 
         @Operation(summary = "Mettre à jour une pharmacie", description = "Met à jour les informations d’une pharmacie existante. Nécessite le rôle PHARMACIST ou ADMIN.")
         @PutMapping("/{id}")
+        @PatchMapping("/{id}")
         @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('SUPER_ADMIN')")
         public ResponseEntity<PharmacyDTO> updatePharmacy(
                         @PathVariable @NonNull UUID id,

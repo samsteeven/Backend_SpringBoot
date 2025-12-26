@@ -7,6 +7,10 @@ spring:
   application:
     name: easypharma-backend
   
+  # Active profile (dev pour développement, prod pour production)
+  profiles:
+    active: dev
+  
   # ========================================
   # DATABASE CONFIGURATION (Laisser la configuration par défaut si vous ne disposez pas de postgresql
   # sinon remplacer par la config postgresql)

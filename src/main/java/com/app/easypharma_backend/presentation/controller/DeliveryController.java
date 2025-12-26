@@ -25,7 +25,27 @@ import java.util.UUID;
 public class DeliveryController {
 
     private final DeliveryRepository deliveryRepository;
+    private final com.app.easypharma_backend.domain.delivery.service.interfaces.DeliveryServiceInterface deliveryService;
     private final com.app.easypharma_backend.domain.auth.repository.UserRepository userRepository;
+
+    @Operation(summary = "Assigner une livraison", description = "Le pharmacien assigne une commande à un livreur de sa pharmacie")
+    @PostMapping("/assign")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE')")
+    public ResponseEntity<ApiResponse<Delivery>> assignDelivery(
+            @Parameter(description = "ID de la commande") @RequestParam UUID orderId,
+            @Parameter(description = "ID du livreur") @RequestParam UUID courierId,
+            Authentication authentication) {
+
+        UUID pharmacistId = getUserIdFromAuthentication(authentication);
+        var pharmacist = userRepository.findById(pharmacistId).orElseThrow();
+
+        if (pharmacist.getPharmacy() == null) {
+            throw new RuntimeException("Pharmacist is not associated with any pharmacy");
+        }
+
+        Delivery delivery = deliveryService.assignDelivery(pharmacist.getPharmacy().getId(), orderId, courierId);
+        return ResponseEntity.ok(ApiResponse.success(delivery, "Livraison assignée avec succès"));
+    }
 
     @Operation(summary = "Mes livraisons", description = "Récupère toutes les livraisons assignées au livreur connecté")
     @GetMapping("/my-deliveries")

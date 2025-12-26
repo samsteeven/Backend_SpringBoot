@@ -31,6 +31,7 @@ public class PaymentController {
 
     @Operation(summary = "Télécharger le reçu", description = "Génère un PDF pour un paiement réussi")
     @GetMapping("/{paymentId}/receipt")
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
     public ResponseEntity<byte[]> downloadReceipt(@PathVariable @NonNull UUID paymentId) {
         Objects.requireNonNull(paymentId, "Payment ID cannot be null");
         byte[] pdfBytes = paymentService.generateReceiptPdf(paymentId);

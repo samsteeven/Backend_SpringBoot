@@ -22,11 +22,25 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     // Recherche par numéro de commande
     Optional<Order> findByOrderNumber(String orderNumber);
 
-    // Recherche par patient
-    List<Order> findByPatientIdOrderByCreatedAtDesc(UUID patientId);
+    // Recherche par patient (avec JOIN FETCH pour éviter
+    // LazyInitializationException)
+    @Query("SELECT DISTINCT o FROM Order o " +
+            "LEFT JOIN FETCH o.patient " +
+            "LEFT JOIN FETCH o.pharmacy " +
+            "LEFT JOIN FETCH o.items " +
+            "WHERE o.patient.id = :patientId " +
+            "ORDER BY o.createdAt DESC")
+    List<Order> findByPatientIdOrderByCreatedAtDesc(@Param("patientId") UUID patientId);
 
-    // Recherche par pharmacie
-    List<Order> findByPharmacyIdOrderByCreatedAtDesc(UUID pharmacyId);
+    // Recherche par pharmacie (avec JOIN FETCH pour éviter
+    // LazyInitializationException)
+    @Query("SELECT DISTINCT o FROM Order o " +
+            "LEFT JOIN FETCH o.patient " +
+            "LEFT JOIN FETCH o.pharmacy " +
+            "LEFT JOIN FETCH o.items " +
+            "WHERE o.pharmacy.id = :pharmacyId " +
+            "ORDER BY o.createdAt DESC")
+    List<Order> findByPharmacyIdOrderByCreatedAtDesc(@Param("pharmacyId") UUID pharmacyId);
 
     // Recherche par patient avec pagination
     Page<Order> findByPatientId(UUID patientId, Pageable pageable);
@@ -47,8 +61,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT o FROM Order o WHERE o.createdAt BETWEEN :startDate AND :endDate ORDER BY o.createdAt DESC")
     List<Order> findOrdersBetweenDates(
             @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
-    );
+            @Param("endDate") LocalDateTime endDate);
 
     // Statistiques pharmacie (nombre commandes par statut)
     @Query("SELECT o.status, COUNT(o) FROM Order o WHERE o.pharmacy.id = :pharmacyId GROUP BY o.status")

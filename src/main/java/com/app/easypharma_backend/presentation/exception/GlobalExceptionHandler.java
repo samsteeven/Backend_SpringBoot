@@ -1,7 +1,9 @@
 package com.app.easypharma_backend.presentation.exception;
 
 import com.app.easypharma_backend.application.common.dto.ApiResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,7 +17,10 @@ import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+        private final Environment environment;
 
         /**
          * Gère les erreurs de validation (@Valid)
@@ -167,10 +172,27 @@ public class GlobalExceptionHandler {
          */
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
-                log.error("Erreur interne du serveur", ex);
+                log.error("Erreur interne du serveur: {}", ex.getMessage(), ex);
+
+                String errorMessage;
+
+                // Vérifier si on est en mode développement
+                boolean isDevMode = environment.matchesProfiles("dev");
+
+                if (isDevMode) {
+                        // En développement, on expose les détails pour faciliter le debug
+                        if (ex.getMessage() != null && !ex.getMessage().isEmpty()) {
+                                errorMessage = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+                        } else {
+                                errorMessage = "Erreur de type: " + ex.getClass().getSimpleName();
+                        }
+                } else {
+                        // En production, message générique pour la sécurité
+                        errorMessage = "Une erreur interne s'est produite";
+                }
 
                 return ResponseEntity
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(ApiResponse.error("Une erreur interne s'est produite"));
+                                .body(ApiResponse.error(errorMessage));
         }
 }
