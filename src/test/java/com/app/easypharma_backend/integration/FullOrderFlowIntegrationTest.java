@@ -53,25 +53,25 @@ public class FullOrderFlowIntegrationTest {
         @Autowired
         private PaymentServiceInterface paymentService;
 
-    private User patient;
+        private User patient;
         private Pharmacy pharmacy;
         private Medication medication;
 
         @BeforeEach
         void setup() {
                 // 1. Create Users
-            User pharmacist = userRepository.save(User.builder()
-                    .email("pharma@test.com")
-                    .password("test")
-                    .firstName("Pharma")
-                    .lastName("Cist")
-                    .phone("111111111")
-                    .role(UserRole.PHARMACY_ADMIN)
-                    .isActive(true)
-                    .isVerified(true)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build());
+                User pharmacist = userRepository.save(User.builder()
+                                .email("pharma@test.com")
+                                .password("test")
+                                .firstName("Pharma")
+                                .lastName("Cist")
+                                .phone("111111111")
+                                .role(UserRole.PHARMACY_ADMIN)
+                                .isActive(true)
+                                .isVerified(true)
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build());
 
                 patient = userRepository.save(User.builder()
                                 .email("patient@test.com")
@@ -146,8 +146,11 @@ public class FullOrderFlowIntegrationTest {
                 assertEquals(10, stockAfterOrder.getStockQuantity());
 
                 // --- Step 4: Process Payment ---
-                PaymentRequestDTO paymentRequest = new PaymentRequestDTO(order.getId(), PaymentMethod.MTN_MOMO,
-                                "670000000");
+                PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
+                                .orderId(order.getId())
+                                .method(PaymentMethod.MTN_MOMO)
+                                .phoneNumber("670000000")
+                                .build();
                 Payment payment = paymentService.processPayment(paymentRequest);
 
                 assertEquals(PaymentStatus.SUCCESS, payment.getStatus());

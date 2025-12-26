@@ -203,4 +203,11 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     private String generateOrderNumber() {
         return "ORD-" + System.currentTimeMillis();
     }
+
+    @Override
+    public java.math.BigDecimal getPharmacyRevenue(@NonNull UUID pharmacyId) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        java.math.BigDecimal revenue = orderRepository.calculateTotalRevenueByPharmacy(pharmacyId);
+        return revenue != null ? revenue : java.math.BigDecimal.ZERO;
+    }
 }

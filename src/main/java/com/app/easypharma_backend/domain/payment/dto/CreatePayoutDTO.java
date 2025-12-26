@@ -2,19 +2,19 @@ package com.app.easypharma_backend.domain.payment.dto;
 
 import com.app.easypharma_backend.domain.payment.entity.PaymentMethod;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentRequestDTO {
-    private UUID orderId; // Deprecated, use orderIds
-    private java.util.List<UUID> orderIds;
-    private PaymentMethod method; // MTN_MOMO, ORANGE_MONEY
-    private String phoneNumber;
+public class CreatePayoutDTO {
+    private UUID pharmacyId;
+    private BigDecimal amount;
+    private String transactionReference;
+    private PaymentMethod method;
+    private String notes;
 }

@@ -40,4 +40,9 @@ public interface OrderServiceInterface {
      * Verify stock availability for a list of items.
      */
     void validateStockAvailability(@NonNull UUID pharmacyId, @NonNull List<CreateOrderDTO.CreateOrderItemDTO> items);
+
+    /**
+     * Get total revenue for a pharmacy (DELIVERED orders).
+     */
+    java.math.BigDecimal getPharmacyRevenue(@NonNull UUID pharmacyId);
 }

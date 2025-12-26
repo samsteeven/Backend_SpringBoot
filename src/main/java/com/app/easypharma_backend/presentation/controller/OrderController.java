@@ -55,6 +55,14 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getPharmacyOrders(pharmacyId));
     }
 
+    @Operation(summary = "Revenus de la pharmacie", description = "Calcule le chiffre d'affaires total (livré)")
+    @GetMapping("/pharmacy-stats/{pharmacyId}")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('SUPER_ADMIN')")
+    public ResponseEntity<java.math.BigDecimal> getPharmacyStats(@PathVariable @NonNull UUID pharmacyId) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        return ResponseEntity.ok(orderService.getPharmacyRevenue(pharmacyId));
+    }
+
     @Operation(summary = "Détails commande", description = "Récupère les détails d'une commande")
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()") // Patient or Pharmacist

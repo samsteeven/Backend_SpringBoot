@@ -38,36 +38,59 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
     @Override
     public Payment processPayment(@NonNull PaymentRequestDTO request) {
         Objects.requireNonNull(request, "Payment request cannot be null");
-        UUID orderId = Objects.requireNonNull(request.getOrderId(), "Order ID cannot be null");
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        if (order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.DELIVERED) {
-            throw new RuntimeException("Order is already paid");
+        // Support backward compatibility
+        java.util.List<UUID> targetOrderIds = request.getOrderIds();
+        if (targetOrderIds == null || targetOrderIds.isEmpty()) {
+            if (request.getOrderId() != null) {
+                targetOrderIds = java.util.Collections.singletonList(request.getOrderId());
+            } else {
+                throw new RuntimeException("No order IDs provided");
+            }
         }
 
-        // Mock Payment Logic
-        // In a real app, calls MTN/Orange API here.
-        boolean isSuccess = true; // Always succeed for Demo
+        java.util.List<Order> ordersToPay = new java.util.ArrayList<>();
+        java.math.BigDecimal totalAmount = java.math.BigDecimal.ZERO;
 
-        Payment payment = Objects.requireNonNull(Payment.builder()
-                .order(order)
-                .paymentMethod(request.getMethod())
-                .phoneNumber(request.getPhoneNumber())
-                .amount(order.getTotalAmount())
-                .status(PaymentStatus.SUCCESS)
-                .transactionId(UUID.randomUUID().toString())
-                .paidAt(LocalDateTime.now())
-                .build());
+        // 1. Validate all orders
+        for (UUID id : targetOrderIds) {
+            Order order = orderRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Order not found: " + id));
 
-        Payment savedPayment = paymentRepository.save(payment);
-
-        if (isSuccess) {
-            orderService.updateOrderStatus(Objects.requireNonNull(order.getId()), OrderStatus.PAID);
+            if (order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.DELIVERED) {
+                throw new RuntimeException("Order " + order.getOrderNumber() + " is already paid");
+            }
+            ordersToPay.add(order);
+            totalAmount = totalAmount.add(order.getTotalAmount());
         }
 
-        return savedPayment;
+        // Mock Payment Logic (One atomic payment for the total)
+        // In a real app, calls MTN/Orange API here with totalAmount.
+        boolean isSuccess = true;
+        String sharedTransactionId = UUID.randomUUID().toString();
+
+        Payment lastPayment = null;
+
+        // 2. Create Payment records for each order (linking them to same transaction)
+        for (Order order : ordersToPay) {
+            Payment payment = Payment.builder()
+                    .order(order)
+                    .paymentMethod(request.getMethod())
+                    .phoneNumber(request.getPhoneNumber())
+                    .amount(order.getTotalAmount()) // Each record tracks its own amount
+                    .status(PaymentStatus.SUCCESS)
+                    .transactionId(sharedTransactionId) // Shared transaction ID
+                    .paidAt(LocalDateTime.now())
+                    .build();
+
+            lastPayment = paymentRepository.save(payment);
+
+            if (isSuccess) {
+                orderService.updateOrderStatus(order.getId(), OrderStatus.PAID);
+            }
+        }
+
+        return lastPayment; // Return the last payment record (or we could return a list)
     }
 
     @Override
