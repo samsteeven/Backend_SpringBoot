@@ -14,58 +14,61 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    // Recherche par email
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.pharmacy WHERE LOWER(u.email) = LOWER(:email)")
-    Optional<User> findByEmail(@Param("email") String email);
+        // Recherche par email
+        @Query("SELECT u FROM User u LEFT JOIN FETCH u.pharmacy WHERE LOWER(u.email) = LOWER(:email)")
+        Optional<User> findByEmail(@Param("email") String email);
 
-    // Recherche par téléphone
-    Optional<User> findByPhone(String phone);
+        // Recherche par téléphone
+        Optional<User> findByPhone(String phone);
 
-    // Vérifier si email existe
-    boolean existsByEmail(String email);
+        // Vérifier si email existe
+        boolean existsByEmail(String email);
 
-    // Vérifier si téléphone existe
-    boolean existsByPhone(String phone);
+        // Vérifier si téléphone existe
+        boolean existsByPhone(String phone);
 
-    // Recherche par rôle
-    List<User> findByRole(UserRole role);
+        // Recherche par rôle
+        List<User> findByRole(UserRole role);
 
-    // Recherche par rôle et statut actif
-    List<User> findByRoleAndIsActiveTrue(UserRole role);
+        // Compter par rôle
+        long countByRole(UserRole role);
 
-    // Recherche utilisateurs actifs
-    List<User> findByIsActiveTrue();
+        // Recherche par rôle et statut actif
+        List<User> findByRoleAndIsActiveTrue(UserRole role);
 
-    // Recherche utilisateurs par ville
-    List<User> findByCity(String city);
+        // Recherche utilisateurs actifs
+        List<User> findByIsActiveTrue();
 
-    // Recherche utilisateurs avec coordonnées GPS
-    @Query("SELECT u FROM User u WHERE u.latitude IS NOT NULL AND u.longitude IS NOT NULL")
-    List<User> findUsersWithLocation();
+        // Recherche utilisateurs par ville
+        List<User> findByCity(String city);
 
-    // Recherche livreurs disponibles dans une ville
-    @Query("SELECT u FROM User u WHERE u.role = 'DELIVERY' AND u.isActive = true AND u.city = :city")
-    List<User> findAvailableDeliveryPersonsInCity(@Param("city") String city);
+        // Recherche utilisateurs avec coordonnées GPS
+        @Query("SELECT u FROM User u WHERE u.latitude IS NOT NULL AND u.longitude IS NOT NULL")
+        List<User> findUsersWithLocation();
 
-    // Recherche utilisateurs par pharmacie
-    List<User> findByPharmacyId(UUID pharmacyId);
+        // Recherche livreurs disponibles dans une ville
+        @Query("SELECT u FROM User u WHERE u.role = 'DELIVERY' AND u.isActive = true AND u.city = :city")
+        List<User> findAvailableDeliveryPersonsInCity(@Param("city") String city);
 
-    // Recherche utilisateurs par pharmacie et rôle
-    List<User> findByPharmacyIdAndRole(UUID pharmacyId, UserRole role);
+        // Recherche utilisateurs par pharmacie
+        List<User> findByPharmacyId(UUID pharmacyId);
 
-    // Recherche employés actifs d'une pharmacie
-    @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'PHARMACY_EMPLOYEE' AND u.isActive = true")
-    List<User> findActiveEmployeesByPharmacy(@Param("pharmacyId") UUID pharmacyId);
+        // Recherche utilisateurs par pharmacie et rôle
+        List<User> findByPharmacyIdAndRole(UUID pharmacyId, UserRole role);
 
-    // Recherche livreurs actifs d'une pharmacie
-    @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'DELIVERY' AND u.isActive = true")
-    List<User> findActiveDeliveryPersonsByPharmacy(@Param("pharmacyId") UUID pharmacyId);
+        // Recherche employés actifs d'une pharmacie
+        @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'PHARMACY_EMPLOYEE' AND u.isActive = true")
+        List<User> findActiveEmployeesByPharmacy(@Param("pharmacyId") UUID pharmacyId);
 
-    // Recherche paginée par rôle
-    org.springframework.data.domain.Page<User> findByRole(UserRole role,
-            org.springframework.data.domain.Pageable pageable);
+        // Recherche livreurs actifs d'une pharmacie
+        @Query("SELECT u FROM User u WHERE u.pharmacy.id = :pharmacyId AND u.role = 'DELIVERY' AND u.isActive = true")
+        List<User> findActiveDeliveryPersonsByPharmacy(@Param("pharmacyId") UUID pharmacyId);
 
-    // Recherche paginée par pharmacie
-    org.springframework.data.domain.Page<User> findByPharmacyId(UUID pharmacyId,
-            org.springframework.data.domain.Pageable pageable);
+        // Recherche paginée par rôle
+        org.springframework.data.domain.Page<User> findByRole(UserRole role,
+                        org.springframework.data.domain.Pageable pageable);
+
+        // Recherche paginée par pharmacie
+        org.springframework.data.domain.Page<User> findByPharmacyId(UUID pharmacyId,
+                        org.springframework.data.domain.Pageable pageable);
 }

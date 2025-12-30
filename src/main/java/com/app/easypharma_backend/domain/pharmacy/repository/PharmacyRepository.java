@@ -29,6 +29,9 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, UUID> {
     // Recherche par statut
     List<Pharmacy> findByStatus(PharmacyStatus status);
 
+    // Compter par statut
+    long countByStatus(PharmacyStatus status);
+
     // Recherche pharmacies approuvées
     List<Pharmacy> findByStatusOrderByNameAsc(PharmacyStatus status);
 

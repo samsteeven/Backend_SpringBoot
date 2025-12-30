@@ -5,14 +5,14 @@
 -- On utilise un UUID fixe pour plus de simplicité dans les scripts de démo
 DO $$ 
 DECLARE 
-    admin_user_id UUID := '0c4cf416-591d-40f8-b9d6-c37dabff308c';
-    pharmacy_id UUID := '1c4cf416-591d-40f8-b9d6-c37dabff308e';
+    v_admin_user_id UUID := '0c4cf416-591d-40f8-b9d6-c37dabff308c';
+    v_pharmacy_id UUID := '1c4cf416-591d-40f8-b9d6-c37dabff308e';
 BEGIN 
     -- Vérifier si l'utilisateur existe déjà (admin@easypharma.cm est créé en V1, mais on crée un pharmacist-test)
     IF NOT EXISTS (SELECT 1 FROM users WHERE email = 'pharmacien-test@easypharma.cm') THEN
-        INSERT INTO users (id, email, password, first_name, last_name, phone, role, is_active, is_verified)
+        INSERT INTO users (id, email, password, first_name, last_name, phone, role, is_active, is_verified, created_at, updated_at)
         VALUES (
-            admin_user_id,
+            v_admin_user_id,
             'pharmacien-test@easypharma.cm',
             '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', -- password: admin123
             'Jean',
@@ -20,7 +20,9 @@ BEGIN
             '+237611111111',
             'PHARMACY_ADMIN',
             TRUE,
-            TRUE
+            TRUE,
+            NOW(),
+            NOW()
         );
     END IF;
 
@@ -28,8 +30,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pharmacies WHERE name = 'Pharmacie du Soleil (Test)') THEN
         INSERT INTO pharmacies (id, user_id, name, license_number, address, city, phone, latitude, longitude, description, status, license_document_url, validated_at, created_at, updated_at)
         VALUES (
-            pharmacy_id,
-            admin_user_id,
+            v_pharmacy_id,
+            v_admin_user_id,
             'Pharmacie du Soleil (Test)',
             'LIC-TEST-001',
             'Rue de la Joie, Akwa',
@@ -46,7 +48,7 @@ BEGIN
         );
 
         -- Lier l'utilisateur à sa pharmacie
-        UPDATE users SET pharmacy_id = pharmacy_id WHERE id = admin_user_id;
+        UPDATE users SET pharmacy_id = v_pharmacy_id WHERE id = v_admin_user_id;
     END IF;
 
     -- 3. Ajout de Médicaments à l'inventaire (Pharmacy Medication)
@@ -54,7 +56,7 @@ BEGIN
     INSERT INTO pharmacy_medications (id, pharmacy_id, medication_id, price, stock_quantity, is_available, created_at, updated_at)
     SELECT 
         gen_random_uuid(),
-        pharmacy_id,
+        v_pharmacy_id,
         m.id,
         CASE 
             WHEN m.name LIKE '%Doliprane%' THEN 1500.00
@@ -69,7 +71,7 @@ BEGIN
     FROM medications m
     WHERE NOT EXISTS (
         SELECT 1 FROM pharmacy_medications pm 
-        WHERE pm.pharmacy_id = pharmacy_id AND pm.medication_id = m.id
+        WHERE pm.pharmacy_id = v_pharmacy_id AND pm.medication_id = m.id
     );
 
 END $$;
