@@ -10,6 +10,8 @@ import com.app.easypharma_backend.domain.payment.entity.Payment;
 import com.app.easypharma_backend.domain.payment.entity.PaymentStatus;
 import com.app.easypharma_backend.domain.payment.repository.PaymentRepository;
 import com.app.easypharma_backend.domain.payment.service.interfaces.PaymentServiceInterface;
+import com.app.easypharma_backend.domain.notification.entity.NotificationType;
+import com.app.easypharma_backend.domain.notification.service.interfaces.NotificationService;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -34,6 +36,7 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final OrderServiceInterface orderService; // To update status
+    private final NotificationService notificationService;
 
     @Override
     public Payment processPayment(@NonNull PaymentRequestDTO request) {
@@ -87,6 +90,16 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
 
             if (isSuccess) {
                 orderService.updateOrderStatus(order.getId(), OrderStatus.PAID);
+
+                // Send Multi-channel Notification
+                String title = "Paiement réussi";
+                String message = String.format(
+                        "Votre paiement pour la commande %s d'un montant de %s FCFA a été traité avec succès.",
+                        order.getOrderNumber(), order.getTotalAmount());
+
+                notificationService.sendInAppNotification(order.getPatient(), title, message, NotificationType.PAYMENT);
+                notificationService.sendSms(order.getPatient().getPhone(), message);
+                notificationService.sendEmail(order.getPatient().getEmail(), title, message);
             }
         }
 
