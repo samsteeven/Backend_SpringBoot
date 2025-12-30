@@ -73,9 +73,3 @@ public class Review {
         updatedAt = LocalDateTime.now();
     }
 }
-
-enum ReviewStatus {
-    PENDING,
-    APPROVED,
-    REJECTED
-}

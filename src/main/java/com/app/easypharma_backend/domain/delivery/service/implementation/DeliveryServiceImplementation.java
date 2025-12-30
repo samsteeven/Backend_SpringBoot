@@ -7,6 +7,8 @@ import com.app.easypharma_backend.domain.delivery.entity.Delivery;
 import com.app.easypharma_backend.domain.delivery.entity.DeliveryStatus;
 import com.app.easypharma_backend.domain.delivery.repository.DeliveryRepository;
 import com.app.easypharma_backend.domain.delivery.service.interfaces.DeliveryServiceInterface;
+import com.app.easypharma_backend.domain.notification.entity.NotificationType;
+import com.app.easypharma_backend.domain.notification.service.interfaces.NotificationService;
 import com.app.easypharma_backend.domain.order.entity.Order;
 import com.app.easypharma_backend.domain.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
     private final DeliveryRepository deliveryRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     public Delivery assignDelivery(@NonNull UUID pharmacyId, @NonNull UUID orderId, @NonNull UUID courierId) {
@@ -67,7 +70,24 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
                 .status(DeliveryStatus.ASSIGNED)
                 .build(); // Timestamp handled by @PrePersist
 
-        return deliveryRepository.save(delivery);
+        Delivery saved = deliveryRepository.save(delivery);
+
+        // Notify Courier
+        String courierTitle = "Nouvelle livraison attribuée";
+        String courierMsg = String.format("Vous avez une nouvelle livraison à effectuer pour la commande %s.",
+                order.getOrderNumber());
+        notificationService.sendInAppNotification(courier, courierTitle, courierMsg, NotificationType.DELIVERY);
+        notificationService.sendSms(courier.getPhone(), courierMsg);
+
+        // Notify Patient
+        String patientTitle = "Livreur attribué";
+        String patientMsg = String.format("Votre commande %s a été confiée à %s %s pour la livraison.",
+                order.getOrderNumber(), courier.getFirstName(), courier.getLastName());
+        notificationService.sendInAppNotification(order.getPatient(), patientTitle, patientMsg,
+                NotificationType.DELIVERY);
+        notificationService.sendPushNotification(order.getPatient(), patientTitle, patientMsg);
+
+        return saved;
     }
 
     @Override

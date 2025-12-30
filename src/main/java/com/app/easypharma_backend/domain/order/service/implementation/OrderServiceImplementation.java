@@ -9,6 +9,8 @@ import com.app.easypharma_backend.domain.order.dto.OrderDTO;
 import com.app.easypharma_backend.domain.order.entity.Order;
 import com.app.easypharma_backend.domain.order.entity.OrderItem;
 import com.app.easypharma_backend.domain.order.entity.OrderStatus;
+import com.app.easypharma_backend.domain.notification.entity.NotificationType;
+import com.app.easypharma_backend.domain.notification.service.interfaces.NotificationService;
 import com.app.easypharma_backend.domain.order.mapper.OrderMapper;
 import com.app.easypharma_backend.domain.order.repository.OrderRepository;
 import com.app.easypharma_backend.domain.order.service.interfaces.OrderServiceInterface;
@@ -38,6 +40,7 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     private final PharmacyMedicationRepository pharmacyMedicationRepository;
 
     private final OrderMapper orderMapper;
+    private final NotificationService notificationService;
 
     @Override
     public OrderDTO createOrder(@NonNull UUID patientId, @NonNull CreateOrderDTO createOrderDTO) {
@@ -110,6 +113,14 @@ public class OrderServiceImplementation implements OrderServiceInterface {
         // 5. Save Order (Cascade saves items)
         Order savedOrder = orderRepository.save(order);
 
+        // Notify Pharmacist
+        String pharmacistTitle = "Nouvelle commande reçue";
+        String pharmacistMsg = String.format("Vous avez une nouvelle commande (%s) à préparer.",
+                savedOrder.getOrderNumber());
+        notificationService.sendInAppNotification(pharmacy.getUser(), pharmacistTitle, pharmacistMsg,
+                NotificationType.ORDER);
+        notificationService.sendEmail(pharmacy.getUser().getEmail(), pharmacistTitle, pharmacistMsg);
+
         return orderMapper.toDTO(savedOrder);
     }
 
@@ -159,6 +170,16 @@ public class OrderServiceImplementation implements OrderServiceInterface {
             // I'll add stock deduction on PAID/CONFIRMED transition
             if (isFirstConfirmation) { // First confirmation
                 deductStock(order);
+
+                // Notify Patient
+                String patientTitle = "Commande confirmée";
+                String patientMsg = String.format(
+                        "Votre commande %s a été confirmée par la pharmacie et est en cours de préparation.",
+                        order.getOrderNumber());
+                notificationService.sendInAppNotification(order.getPatient(), patientTitle, patientMsg,
+                        NotificationType.ORDER);
+                notificationService.sendSms(order.getPatient().getPhone(), patientMsg);
+                notificationService.sendEmail(order.getPatient().getEmail(), patientTitle, patientMsg);
             }
         }
 
