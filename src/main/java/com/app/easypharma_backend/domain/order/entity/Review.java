@@ -35,8 +35,18 @@ public class Review {
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "courier_id")
+    private User courier;
+
     @Column(name = "rating", nullable = false)
-    private Integer rating; // 1 à 5
+    private Integer rating; // 1 à 5 (Pharmacie)
+
+    @Column(name = "courier_rating")
+    private Integer courierRating; // 1 à 5 (Livreur)
+
+    @Column(name = "courier_comment", columnDefinition = "TEXT")
+    private String courierComment;
 
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
