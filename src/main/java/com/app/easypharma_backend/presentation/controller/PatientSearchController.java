@@ -26,10 +26,11 @@ public class PatientSearchController {
     private final PharmacyMapper pharmacyMapper;
     private final com.app.easypharma_backend.infrastructure.security.JwtService jwtService;
     private final com.app.easypharma_backend.application.auth.usecase.GetUserProfileUseCase getUserProfileUseCase;
+    private final com.app.easypharma_backend.domain.search.repository.SearchLogRepository searchLogRepository;
+    private final com.app.easypharma_backend.domain.auth.repository.UserRepository userRepository;
 
     @Operation(summary = "Recherche globale de médicaments", description = "Recherche par nom, générique ou symptômes. Tri par prix, note ou proximité. Si 'query' est vide, retourne tous les médicaments disponibles.")
     @io.swagger.v3.oas.annotations.responses.ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Résultats de la recherche", content = @io.swagger.v3.oas.annotations.media.Content(mediaType = "application/json", schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = PatientMedicationSearchResultDTO.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Paramètres invalides (ex: tri NEAREST sans coordonnées)", content = @io.swagger.v3.oas.annotations.media.Content)
     })
     @GetMapping
@@ -40,6 +41,28 @@ public class PatientSearchController {
             @Parameter(description = "Latitude utilisateur (requis pour tri NEAREST)") @RequestParam(required = false) Double userLat,
             @Parameter(description = "Longitude utilisateur (requis pour tri NEAREST)") @RequestParam(required = false) Double userLon,
             @Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        // Log Search (Async ideal, but keep simple for now)
+        if (query != null && !query.trim().isEmpty()) {
+            final String finalToken = (authHeader != null && authHeader.startsWith("Bearer "))
+                    ? authHeader.replace("Bearer ", "")
+                    : null;
+            new Thread(() -> {
+                try {
+                    com.app.easypharma_backend.domain.auth.entity.User user = null;
+                    if (finalToken != null) {
+                        String email = jwtService.extractEmail(finalToken);
+                        user = userRepository.findByEmail(email).orElse(null);
+                    }
+                    searchLogRepository.save(com.app.easypharma_backend.domain.search.entity.SearchLog.builder()
+                            .query(query)
+                            .user(user)
+                            .build());
+                } catch (Exception e) {
+                    // Silent fail for logs
+                }
+            }).start();
+        }
 
         // Auto-detect location for authenticated users if not provided
         if ((userLat == null || userLon == null) && authHeader != null && authHeader.startsWith("Bearer ")) {
