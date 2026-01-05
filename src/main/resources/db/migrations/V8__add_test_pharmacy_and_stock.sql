@@ -9,7 +9,7 @@ DECLARE
     v_pharmacy_id UUID := '1c4cf416-591d-40f8-b9d6-c37dabff308e';
 BEGIN 
     -- Vérifier si l'utilisateur existe déjà (admin@easypharma.cm est créé en V1, mais on crée un pharmacist-test)
-    IF NOT EXISTS (SELECT 1 FROM users WHERE email = 'pharmacien-test@easypharma.cm') THEN
+    IF NOT EXISTS (SELECT 1 FROM users WHERE email = 'pharmacien-test@easyp3harma.cm') THEN
         INSERT INTO users (id, email, password, first_name, last_name, phone, role, is_active, is_verified, created_at, updated_at)
         VALUES (
             v_admin_user_id,
