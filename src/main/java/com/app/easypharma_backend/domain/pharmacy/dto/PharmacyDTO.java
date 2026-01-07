@@ -21,6 +21,12 @@ public class PharmacyDTO {
 
     private UUID userId;
 
+    private String ownerFirstName;
+
+    private String ownerLastName;
+
+    private String ownerEmail;
+
     private String name;
 
     private String licenseNumber;

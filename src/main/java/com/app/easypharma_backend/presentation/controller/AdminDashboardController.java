@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Admin Dashboard", description = "Statistiques et métriques globales pour le Super Admin")
-@PreAuthorize("hasAuthority('SUPER_ADMIN')")
+@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;

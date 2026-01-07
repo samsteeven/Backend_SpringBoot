@@ -88,7 +88,7 @@ public class ReviewServiceImplementation {
     }
 
     public List<ReviewDTO> getPharmacyReviews(UUID pharmacyId) {
-        return reviewRepository.findByPharmacyIdAndStatusOrderByCreatedAtDesc(pharmacyId, "APPROVED")
+        return reviewRepository.findByPharmacyIdAndStatusOrderByCreatedAtDesc(pharmacyId, ReviewStatus.APPROVED)
                 .stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

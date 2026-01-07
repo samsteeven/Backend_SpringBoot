@@ -14,6 +14,9 @@ public interface PharmacyMapper {
      * Extrait userId de la relation User
      */
     @Mapping(target = "userId", expression = "java(pharmacy.getUser() != null ? pharmacy.getUser().getId() : null)")
+    @Mapping(target = "ownerFirstName", expression = "java(pharmacy.getUser() != null ? pharmacy.getUser().getFirstName() : null)")
+    @Mapping(target = "ownerLastName", expression = "java(pharmacy.getUser() != null ? pharmacy.getUser().getLastName() : null)")
+    @Mapping(target = "ownerEmail", expression = "java(pharmacy.getUser() != null ? pharmacy.getUser().getEmail() : null)")
     PharmacyDTO toDTO(Pharmacy pharmacy);
 
     /**

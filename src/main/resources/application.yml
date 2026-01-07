@@ -216,22 +216,17 @@ management:
         enabled: true
 
 # ========================================
-# LOGGING
+# LOGGING (Configured via logback-spring.xml)
 # ========================================
 logging:
+  config: classpath:logback-spring.xml
   level:
     root: INFO
     com.app.easypharma: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
+    org.springframework.security: INFO
+    org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.flywaydb: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/easypharma-backend.log
 
 # ========================================
 # SERVER CONFIGURATION

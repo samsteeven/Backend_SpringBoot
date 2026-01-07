@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
@@ -28,7 +29,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    private final PasswordEncoder passwordEncoder;
     private final JwtFilter jwtFilter;
 
     @Bean
@@ -61,6 +61,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/pharmacy/**").permitAll()
 
                         // Tous les autres endpoints nécessitent une authentification
                         .anyRequest().authenticated())
