@@ -15,6 +15,7 @@ public class DeleteUserUseCase {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final com.app.easypharma_backend.domain.search.repository.SearchLogRepository searchLogRepository;
 
     /**
      * Supprime le compte utilisateur
@@ -29,6 +30,9 @@ public class DeleteUserUseCase {
 
         // Supprimer les refresh tokens associés
         refreshTokenRepository.deleteByUser(user);
+
+        // Supprimer l'historique de recherche associé
+        searchLogRepository.deleteByUser(user);
 
         // Supprimer l'utilisateur
         userRepository.delete(user);

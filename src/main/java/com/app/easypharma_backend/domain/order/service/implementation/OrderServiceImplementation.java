@@ -154,6 +154,14 @@ public class OrderServiceImplementation implements OrderServiceInterface {
 
         // Handle transitions if needed (e.g., reduce stock on CONFIRMED if not done)
         // For now, simple state update
+        // APRÈS : Ajouter la gestion de l'annulation
+        // Si on annule une commande qui avait déjà déduit le stock (donc
+        // confirmée/payée)
+        if (status == OrderStatus.CANCELLED
+                && (order.getStatus() == OrderStatus.CONFIRMED || order.getStatus() == OrderStatus.PAID)) {
+            restockItems(order);
+        }
+
         order.setStatus(status);
         if (status == OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
@@ -188,19 +196,31 @@ public class OrderServiceImplementation implements OrderServiceInterface {
 
     private void deductStock(Order order) {
         for (OrderItem item : order.getItems()) {
-            PharmacyMedication pm = pharmacyMedicationRepository.findByPharmacyIdAndMedicationId(
+            PharmacyMedication pm = pharmacyMedicationRepository.findByPharmacyIdAndMedicationIdForUpdate(
                     order.getPharmacy().getId(), item.getMedication().getId())
-                    .orElseThrow();
+                    .orElseThrow(() -> new RuntimeException("Produit introuvable au moment de la validation"));
 
             int newStock = pm.getStockQuantity() - item.getQuantity();
             if (newStock < 0) {
-                throw new RuntimeException(
-                        "Stock error: Insufficient stock during confirmation for " + pm.getMedication().getName());
+                throw new RuntimeException("Stock insuffisant pour : " + pm.getMedication().getName());
             }
             pm.setStockQuantity(newStock);
-            if (newStock == 0)
-                pm.setIsAvailable(false);
+            pm.setIsAvailable(newStock > 0);
             pharmacyMedicationRepository.save(pm);
+        }
+    }
+
+    // AJOUTER cette méthode pour gérer les annulations
+    private void restockItems(Order order) {
+        for (OrderItem item : order.getItems()) {
+            PharmacyMedication pm = pharmacyMedicationRepository.findByPharmacyIdAndMedicationIdForUpdate(
+                    order.getPharmacy().getId(), item.getMedication().getId())
+                    .orElse(null);
+            if (pm != null) {
+                pm.setStockQuantity(pm.getStockQuantity() + item.getQuantity());
+                pm.setIsAvailable(true);
+                pharmacyMedicationRepository.save(pm);
+            }
         }
     }
 

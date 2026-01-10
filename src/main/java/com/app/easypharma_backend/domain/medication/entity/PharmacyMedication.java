@@ -10,12 +10,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(
-        name = "pharmacy_medications",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"pharmacy_id", "medication_id"}
-        )
-)
+@Table(name = "pharmacy_medications", uniqueConstraints = @UniqueConstraint(columnNames = { "pharmacy_id",
+        "medication_id" }))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -57,14 +53,18 @@ public class PharmacyMedication {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        updateAvailability();
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-        // Mise à jour automatique de la disponibilité
-        if (stockQuantity != null && stockQuantity == 0) {
-            isAvailable = false;
+        updateAvailability();
+    }
+
+    private void updateAvailability() {
+        if (stockQuantity != null) {
+            isAvailable = stockQuantity > 0;
         }
     }
 }

@@ -23,6 +23,7 @@ public class PatientMedicationSearchResultDTO {
     // Price & Stock
     private BigDecimal price;
     private Boolean isAvailable;
+    private Integer stockQuantity; // Add stock quantity for client display
 
     // Pharmacy Details
     private PharmacyDTO pharmacy;

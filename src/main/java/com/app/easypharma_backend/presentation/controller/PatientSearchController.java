@@ -117,6 +117,7 @@ public class PatientSearchController {
                             .medicationPhotoUrl(pm.getMedication().getPhotoUrl())
                             .price(pm.getPrice())
                             .isAvailable(pm.getIsAvailable())
+                            .stockQuantity(pm.getStockQuantity())
                             .pharmacy(pharmacyDTO)
                             .distanceKm(distance)
                             .build();

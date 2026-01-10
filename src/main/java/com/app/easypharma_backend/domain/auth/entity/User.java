@@ -55,6 +55,7 @@ public class User {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pharmacy_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy pharmacy;
 
     @Column(name = "is_active", nullable = false)

@@ -1,8 +1,11 @@
 package com.app.easypharma_backend.domain.delivery.service.interfaces;
 
+import com.app.easypharma_backend.domain.delivery.dto.AvailableOrderDTO;
 import com.app.easypharma_backend.domain.delivery.entity.Delivery;
 import org.springframework.lang.NonNull;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 public interface DeliveryServiceInterface {
@@ -24,4 +27,25 @@ public interface DeliveryServiceInterface {
      * @return La livraison ou une exception si non trouvée
      */
     Delivery getDeliveryByOrderId(@NonNull UUID orderId);
+
+    /**
+     * Récupère les commandes disponibles pour livraison auprès de la pharmacie du livreur
+     * 
+     * @param deliveryPersonId ID du livreur
+     * @param userLatitude Latitude du livreur (optionnel, pour calcul de distance)
+     * @param userLongitude Longitude du livreur (optionnel, pour calcul de distance)
+     * @return Liste des commandes disponibles à livrer
+     */
+    List<AvailableOrderDTO> getAvailableOrders(@NonNull UUID deliveryPersonId, 
+                                                BigDecimal userLatitude, 
+                                                BigDecimal userLongitude);
+
+    /**
+     * Le livreur accepte une commande et se voit assigner cette livraison
+     * 
+     * @param deliveryPersonId ID du livreur
+     * @param orderId ID de la commande à accepter
+     * @return La livraison créée/assignée
+     */
+    Delivery acceptOrder(@NonNull UUID deliveryPersonId, @NonNull UUID orderId);
 }
