@@ -24,6 +24,7 @@ public class SearchLog {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private User user; // Nullable (guest searches)
 
     @Column(name = "query", nullable = false)

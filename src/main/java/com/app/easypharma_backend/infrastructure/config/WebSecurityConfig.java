@@ -62,6 +62,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/reviews/pharmacy/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/pharmacies/**").permitAll()
 
                         // Tous les autres endpoints nécessitent une authentification
                         .anyRequest().authenticated())
