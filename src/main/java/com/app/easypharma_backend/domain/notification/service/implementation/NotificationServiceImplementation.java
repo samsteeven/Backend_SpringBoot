@@ -7,6 +7,8 @@ import com.app.easypharma_backend.domain.notification.repository.NotificationRep
 import com.app.easypharma_backend.domain.notification.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationServiceImplementation implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final JavaMailSender mailSender;
 
     @Override
     @Transactional
@@ -30,7 +33,7 @@ public class NotificationServiceImplementation implements NotificationService {
         notificationRepository.save(notification);
         log.info("In-app notification saved for user {}: {}", user.getEmail(), title);
 
-        // Simuler également un Push quand une notif in-app est créée
+        // Simulation d'un Push quand une notif in-app est créée
         sendPushNotification(user, title, message);
     }
 
@@ -48,7 +51,17 @@ public class NotificationServiceImplementation implements NotificationService {
 
     @Override
     public void sendEmail(String email, String subject, String body) {
-        // Simulation d'envoi d'Email (JavaMailSender plus tard)
-        log.info("[EMAIL SIMULATION] To: {} | Subject: {} | Body: {}", email, subject, body);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject(subject);
+            message.setText(body);
+            message.setFrom("no-reply@easypharma.com");
+
+            mailSender.send(message);
+            log.info("Email sent successfully to: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to send email to {}: {}", email, e.getMessage());
+        }
     }
 }
