@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -61,6 +62,12 @@ class AuthControllerTest {
         @MockBean
         private RateLimitingService rateLimitingService;
 
+        @MockBean
+        private UserDetailsService userDetailsService;
+
+        @MockBean
+        private com.app.easypharma_backend.infrastructure.security.JwtFilter jwtFilter;
+
         @Test
         void register_shouldReturnOk_andCallRegisterUseCase() throws Exception {
                 String json = objectMapper.writeValueAsString(
@@ -70,7 +77,7 @@ class AuthControllerTest {
                                                 put("password", "P@ssw0rdA");
                                                 put("firstName", "John");
                                                 put("lastName", "Doe");
-                                                put("phone", "+237600000000");
+                                                put("phone", "600000000");
                                                 put("role", "PATIENT");
                                         }
                                 });
@@ -156,6 +163,7 @@ class AuthControllerTest {
                                         }
                                 });
 
+                when(rateLimitingService.tryConsume(anyString())).thenReturn(true);
                 doNothing().when(forgotPasswordUseCase).execute(anyString(), anyString(), anyString());
 
                 mockMvc.perform(post("/api/v1/auth/forgot-password")

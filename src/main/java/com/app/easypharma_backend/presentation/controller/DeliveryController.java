@@ -50,7 +50,7 @@ public class DeliveryController {
 
     @Operation(summary = "Mes livraisons", description = "Récupère toutes les livraisons assignées au livreur connecté")
     @GetMapping("/my-deliveries")
-    @PreAuthorize("hasRole('DELIVERY')")
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('PHARMACY_EMPLOYEE') or hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<ApiResponse<List<com.app.easypharma_backend.domain.delivery.dto.DeliveryDTO>>> getMyDeliveries(
             Authentication authentication) {
         UUID deliveryPersonId = getUserIdFromAuthentication(authentication);
@@ -60,9 +60,35 @@ public class DeliveryController {
                 "Livraisons récupérées avec succès"));
     }
 
+    @Operation(summary = "Livraisons disponibles", description = "Récupère les commandes prêtes pour livraison")
+    @GetMapping("/available")
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('PHARMACY_EMPLOYEE') or hasRole('PHARMACY_ADMIN')")
+    public ResponseEntity<ApiResponse<List<com.app.easypharma_backend.domain.delivery.dto.AvailableOrderDTO>>> getAvailableDeliveries(
+            @RequestParam UUID pharmacyId,
+            @RequestParam(required = false) BigDecimal latitude,
+            @RequestParam(required = false) BigDecimal longitude,
+            Authentication authentication) {
+        UUID deliveryPersonId = getUserIdFromAuthentication(authentication);
+
+        var availableOrders = deliveryService.getAvailableOrders(deliveryPersonId, latitude, longitude);
+        return ResponseEntity.ok(ApiResponse.success(availableOrders, "Commandes disponibles récupérées"));
+    }
+
+    @Operation(summary = "Accepter une livraison", description = "Le livreur accepte une commande disponible")
+    @PostMapping("/{deliveryId}/accept")
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('PHARMACY_EMPLOYEE') or hasRole('PHARMACY_ADMIN')")
+    public ResponseEntity<ApiResponse<com.app.easypharma_backend.domain.delivery.dto.DeliveryDTO>> acceptDelivery(
+            @PathVariable UUID deliveryId,
+            Authentication authentication) {
+        UUID deliveryPersonId = getUserIdFromAuthentication(authentication);
+
+        Delivery delivery = deliveryService.acceptOrder(deliveryPersonId, deliveryId);
+        return ResponseEntity.ok(ApiResponse.success(deliveryMapper.toDTO(delivery), "Livraison acceptée avec succès"));
+    }
+
     @Operation(summary = "Livraisons en cours", description = "Récupère uniquement les livraisons en cours (ASSIGNED, PICKED_UP, IN_TRANSIT)")
     @GetMapping("/my-deliveries/ongoing")
-    @PreAuthorize("hasRole('DELIVERY')")
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('PHARMACY_EMPLOYEE') or hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<ApiResponse<List<com.app.easypharma_backend.domain.delivery.dto.DeliveryDTO>>> getOngoingDeliveries(
             Authentication authentication) {
         UUID deliveryPersonId = getUserIdFromAuthentication(authentication);
@@ -74,7 +100,7 @@ public class DeliveryController {
 
     @Operation(summary = "Mettre à jour le statut", description = "Met à jour le statut d'une livraison")
     @PatchMapping("/{deliveryId}/status")
-    @PreAuthorize("hasRole('DELIVERY')")
+    @PreAuthorize("hasRole('DELIVERY') or hasRole('PHARMACY_EMPLOYEE') or hasRole('PHARMACY_ADMIN')")
     public ResponseEntity<ApiResponse<com.app.easypharma_backend.domain.delivery.dto.DeliveryDTO>> updateDeliveryStatus(
             @Parameter(description = "ID de la livraison") @PathVariable UUID deliveryId,
             @Parameter(description = "Nouveau statut") @RequestParam DeliveryStatus status,
