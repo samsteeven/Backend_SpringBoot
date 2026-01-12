@@ -33,7 +33,6 @@ public class AuthController {
         private final GetUserProfileUseCase getUserProfileUseCase;
         private final JwtService jwtService;
         private final com.app.easypharma_backend.infrastructure.security.RateLimitingService rateLimitingService;
-        private final com.app.easypharma_backend.domain.auth.service.AuditService auditService;
 
         /**
          * Inscription d'un nouvel utilisateur
@@ -128,7 +127,6 @@ public class AuthController {
 
                 // Vérifier le rate limiting
                 if (!rateLimitingService.tryConsume(email)) {
-                        auditService.logRateLimitExceeded(email, ipAddress, userAgent);
                         return ResponseEntity.status(429).body(
                                         com.app.easypharma_backend.application.common.dto.ApiResponse
                                                         .error("Trop de tentatives. Veuillez réessayer plus tard."));

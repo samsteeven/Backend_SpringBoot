@@ -2,7 +2,7 @@ package com.app.easypharma_backend.presentation.controller;
 
 import com.app.easypharma_backend.application.auth.usecase.*;
 import com.app.easypharma_backend.infrastructure.security.JwtService;
-import com.app.easypharma_backend.domain.auth.service.AuditService;
+// AuditService import removed - service no longer exists
 import com.app.easypharma_backend.infrastructure.security.RateLimitingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -56,8 +56,7 @@ class AuthControllerTest {
         @MockBean
         private JwtService jwtService;
 
-        @MockBean
-        private AuditService auditService;
+        // AuditService removed - no longer needed
 
         @MockBean
         private RateLimitingService rateLimitingService;
