@@ -58,6 +58,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Autoriser les endpoints publics
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()

@@ -2,6 +2,8 @@ package com.app.easypharma_backend.presentation.controller;
 
 import com.app.easypharma_backend.application.auth.usecase.*;
 import com.app.easypharma_backend.infrastructure.security.JwtService;
+import com.app.easypharma_backend.domain.auth.service.AuditService;
+import com.app.easypharma_backend.infrastructure.security.RateLimitingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,12 @@ class AuthControllerTest {
 
         @MockBean
         private JwtService jwtService;
+
+        @MockBean
+        private AuditService auditService;
+
+        @MockBean
+        private RateLimitingService rateLimitingService;
 
         @Test
         void register_shouldReturnOk_andCallRegisterUseCase() throws Exception {
@@ -148,7 +156,7 @@ class AuthControllerTest {
                                         }
                                 });
 
-                doNothing().when(forgotPasswordUseCase).execute(anyString());
+                doNothing().when(forgotPasswordUseCase).execute(anyString(), anyString(), anyString());
 
                 mockMvc.perform(post("/api/v1/auth/forgot-password")
                                 .with(csrf())
@@ -156,7 +164,7 @@ class AuthControllerTest {
                                 .content(json))
                                 .andExpect(status().isOk());
 
-                verify(forgotPasswordUseCase, times(1)).execute(eq("user@example.com"));
+                verify(forgotPasswordUseCase, times(1)).execute(eq("user@example.com"), any(), any());
         }
 
         @Test

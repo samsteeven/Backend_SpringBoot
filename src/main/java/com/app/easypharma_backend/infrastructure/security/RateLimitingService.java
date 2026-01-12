@@ -4,14 +4,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.BucketConfiguration;
-import io.github.bucket4j.distributed.proxy.ProxyManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 @Service
 @Slf4j

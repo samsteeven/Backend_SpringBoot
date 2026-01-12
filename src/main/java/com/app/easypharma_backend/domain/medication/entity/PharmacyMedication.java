@@ -1,6 +1,7 @@
 package com.app.easypharma_backend.domain.medication.entity;
 
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -24,10 +25,12 @@ public class PharmacyMedication {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pharmacy_id", nullable = false)
     private Pharmacy pharmacy;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "medication_id", nullable = false)
     private Medication medication;
