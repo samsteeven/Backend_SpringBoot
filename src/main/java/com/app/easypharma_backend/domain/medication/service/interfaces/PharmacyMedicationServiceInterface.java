@@ -3,6 +3,7 @@ package com.app.easypharma_backend.domain.medication.service.interfaces;
 import com.app.easypharma_backend.domain.medication.dto.PharmacyMedicationDTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.lang.NonNull;
@@ -10,10 +11,10 @@ import org.springframework.lang.NonNull;
 public interface PharmacyMedicationServiceInterface {
 
     /**
-     * Add a medication to a pharmacy with initial stock and price.
+     * Add a medication to a pharmacy with initial stock, price and expiry date.
      */
     PharmacyMedicationDTO addMedicationToPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId,
-            BigDecimal price, Integer stock);
+            BigDecimal price, Integer stock, LocalDate expiryDate);
 
     /**
      * Update the stock quantity of a medication in a pharmacy.
@@ -24,6 +25,11 @@ public interface PharmacyMedicationServiceInterface {
      * Update the price of a medication in a pharmacy.
      */
     PharmacyMedicationDTO updatePrice(@NonNull UUID pharmacyId, @NonNull UUID medicationId, BigDecimal price);
+
+    /**
+     * Update the expiry date of a medication in a pharmacy.
+     */
+    PharmacyMedicationDTO updateExpiryDate(@NonNull UUID pharmacyId, @NonNull UUID medicationId, LocalDate expiryDate);
 
     /**
      * Get all medications available in a specific pharmacy.

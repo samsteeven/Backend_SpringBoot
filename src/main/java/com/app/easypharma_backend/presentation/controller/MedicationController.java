@@ -69,8 +69,9 @@ public class MedicationController {
             @Parameter(description = "Nom du médicament (partiel)") @RequestParam(required = false) String name,
             @Parameter(description = "Classe thérapeutique") @RequestParam(required = false) TherapeuticClass therapeuticClass,
             @Parameter(description = "Nécessite ordonnance") @RequestParam(required = false) Boolean requiresPrescription) {
+        String therapeuticClassStr = therapeuticClass != null ? therapeuticClass.name() : null;
         return ResponseEntity.ok(
-                medicationRepository.searchWithFilters(name, therapeuticClass, requiresPrescription));
+                medicationRepository.searchWithFilters(name, therapeuticClassStr, requiresPrescription));
     }
 
     @Operation(summary = "Obtenir un médicament par ID", description = "Récupère les détails d'un médicament spécifique")

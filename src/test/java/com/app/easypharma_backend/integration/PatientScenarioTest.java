@@ -104,7 +104,7 @@ public class PatientScenarioTest {
                 .build());
 
         pharmacyMedicationService.addMedicationToPharmacy(pharmacy.getId(), medication.getId(), BigDecimal.valueOf(100),
-                50);
+                50, null);
 
         // 3. Patient
         patient = userRepository.save(User.builder()

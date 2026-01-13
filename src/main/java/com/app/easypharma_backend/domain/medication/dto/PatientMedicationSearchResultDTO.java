@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -24,6 +25,7 @@ public class PatientMedicationSearchResultDTO {
     private BigDecimal price;
     private Boolean isAvailable;
     private Integer stockQuantity; // Add stock quantity for client display
+    private LocalDate expiryDate;
 
     // Pharmacy Details
     private PharmacyDTO pharmacy;

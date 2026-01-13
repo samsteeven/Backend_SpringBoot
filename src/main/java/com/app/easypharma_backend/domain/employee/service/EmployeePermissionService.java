@@ -39,13 +39,19 @@ public class EmployeePermissionService {
         EmployeePermission permission = permissionRepository.findByEmployeeId(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("Permissions not found for employee: " + employeeId));
 
-        // Update permissions
-        permission.setCanPrepareOrders(dto.getCanPrepareOrders());
-        permission.setCanAssignDeliveries(dto.getCanAssignDeliveries());
-        permission.setCanViewStatistics(dto.getCanViewStatistics());
-        permission.setCanManageInventory(dto.getCanManageInventory());
-        permission.setCanViewCustomerInfo(dto.getCanViewCustomerInfo());
-        permission.setCanProcessPayments(dto.getCanProcessPayments());
+        // Update permissions only if provided
+        if (dto.getCanPrepareOrders() != null)
+            permission.setCanPrepareOrders(dto.getCanPrepareOrders());
+        if (dto.getCanAssignDeliveries() != null)
+            permission.setCanAssignDeliveries(dto.getCanAssignDeliveries());
+        if (dto.getCanViewStatistics() != null)
+            permission.setCanViewStatistics(dto.getCanViewStatistics());
+        if (dto.getCanManageInventory() != null)
+            permission.setCanManageInventory(dto.getCanManageInventory());
+        if (dto.getCanViewCustomerInfo() != null)
+            permission.setCanViewCustomerInfo(dto.getCanViewCustomerInfo());
+        if (dto.getCanProcessPayments() != null)
+            permission.setCanProcessPayments(dto.getCanProcessPayments());
         permission.setLastModifiedBy(modifiedBy);
 
         EmployeePermission saved = permissionRepository.save(permission);
