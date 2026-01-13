@@ -10,6 +10,8 @@ public enum TherapeuticClass {
     ANTIHYPERTENSEUR("Antihypertenseur"),
     ANTIINFLAMMATOIRE("Antiinflammatoire"),
     ANTIDIABETIQUE("Antidiabétique"),
+    ANTIHISTAMINIQUE("Antihistaminique"),
+    ANTIPYRETIQUE("Antipyrétique"),
     VITAMINE("Vitamine"),
     AUTRE("Autre");
 

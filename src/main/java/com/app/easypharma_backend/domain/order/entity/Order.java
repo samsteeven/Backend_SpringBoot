@@ -2,6 +2,7 @@ package com.app.easypharma_backend.domain.order.entity;
 
 import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -29,10 +30,12 @@ public class Order {
     @Column(name = "order_number", nullable = false, unique = true, length = 20)
     private String orderNumber;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id", nullable = false)
     private User patient;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pharmacy_id", nullable = false)
     private Pharmacy pharmacy;
@@ -75,6 +78,7 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();

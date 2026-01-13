@@ -5,14 +5,13 @@ import com.app.easypharma_backend.domain.order.dto.PrescriptionDTO;
 import com.app.easypharma_backend.domain.order.entity.Prescription;
 import com.app.easypharma_backend.domain.order.repository.PrescriptionRepository;
 import com.app.easypharma_backend.domain.order.service.interfaces.PrescriptionService;
+import com.app.easypharma_backend.infrastructure.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,17 +20,15 @@ import java.util.stream.Collectors;
 public class PrescriptionServiceImplementation implements PrescriptionService {
 
     private final PrescriptionRepository prescriptionRepository;
+    private final FileStorageService fileStorageService;
 
     @Override
     public PrescriptionDTO uploadPrescription(User patient, MultipartFile file) {
-        // FIXME: In a real app, upload 'file' to S3/Cloudinary and get URL.
-        // For this demo, we simulate a URL based on the filename or ID.
-        String fileName = file.getOriginalFilename();
-        String fakeUrl = "https://storage.easypharma.com/prescriptions/" + UUID.randomUUID() + "_" + fileName;
+        String photoUrl = fileStorageService.storeFile(file, "prescriptions");
 
         Prescription prescription = Prescription.builder()
                 .patient(patient)
-                .photoUrl(fakeUrl)
+                .photoUrl(photoUrl)
                 .build();
 
         Prescription saved = prescriptionRepository.save(prescription);

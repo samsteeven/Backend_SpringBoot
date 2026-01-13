@@ -1,8 +1,10 @@
 package com.app.easypharma_backend.application.auth.usecase;
 
 import com.app.easypharma_backend.domain.auth.service.PasswordResetService;
+import com.app.easypharma_backend.domain.notification.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,26 +13,50 @@ import org.springframework.stereotype.Service;
 public class ForgotPasswordUseCase {
 
     private final PasswordResetService passwordResetService;
-    // TODO: Injecter NotificationService pour envoyer l'email
+    private final NotificationService notificationService;
+    // AuditService removed - use new audit.AuditLogService if needed
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     /**
      * Initie le processus de réinitialisation de mot de passe
      */
-    public void execute(String email) {
+    public void execute(String email, String ipAddress, String userAgent) {
         log.info("Demande de réinitialisation de mot de passe pour l'email: {}", email);
 
         try {
             // Générer le token de réinitialisation
             String token = passwordResetService.generateResetToken(email);
 
-            // TODO: Envoyer l'email avec le lien de réinitialisation
-            // String resetLink = "http://frontend-url/reset-password?token=" + token;
-            // notificationService.sendPasswordResetEmail(email, resetLink);
+            // Lien de réinitialisation dynamique
+            String resetLink = frontendUrl + "/reset-password?token=" + token;
 
-            log.info("Token de réinitialisation généré et envoyé pour: {}", email);
+            String subject = "Réinitialisation de votre mot de passe - EasyPharma";
+            String body = "Bonjour,\n\n" +
+                    "Vous avez demandé la réinitialisation de votre mot de passe pour votre compte EasyPharma.\n" +
+                    "Veuillez cliquer sur le lien ci-dessous pour définir un nouveau mot de passe :\n\n" +
+                    resetLink + "\n\n" +
+                    "Ce lien expirera bientôt.\n" +
+                    "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.\n\n" +
+                    "Cordialement,\n" +
+                    "L'équipe EasyPharma";
+
+            notificationService.sendEmail(email, subject, body);
+
+            // Log d'audit pour succès
+            // auditService.logPasswordResetRequest(email, ipAddress, userAgent, true,
+            // "Email envoyé avec succès");
+
+            log.info("Email de réinitialisation envoyé pour: {}", email);
         } catch (Exception e) {
+            // Log d'audit pour échec
+            // auditService.logPasswordResetRequest(email, ipAddress, userAgent, false,
+            // e.getMessage());
+
             // Ne pas révéler si l'email existe ou non pour des raisons de sécurité
-            log.warn("Tentative de réinitialisation de mot de passe pour un email non existant: {}", email);
+            log.warn("Tentative de réinitialisation de mot de passe pour un email non existant ou erreur: {} - {}",
+                    email, e.getMessage());
         }
     }
 }
