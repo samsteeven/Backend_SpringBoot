@@ -17,6 +17,11 @@ WORKDIR /app
 
 # Add a non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
+
+# Créer les dossiers utilisés par logback et l'app
+RUN mkdir -p /app/logs /app/uploads \
+    && chown -R spring:spring /app
+    
 USER spring:spring
 
 # Copy jar from build stage
