@@ -16,7 +16,10 @@ import com.app.easypharma_backend.domain.order.repository.OrderRepository;
 import com.app.easypharma_backend.domain.order.service.interfaces.OrderServiceInterface;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository;
+import com.app.easypharma_backend.infrastructure.validation.StatusTransitionValidator;
+import com.app.easypharma_backend.domain.audit.service.AuditLogService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.lang.NonNull;
@@ -31,6 +34,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class OrderServiceImplementation implements OrderServiceInterface {
 
     private final OrderRepository orderRepository;
@@ -41,6 +45,8 @@ public class OrderServiceImplementation implements OrderServiceInterface {
 
     private final OrderMapper orderMapper;
     private final NotificationService notificationService;
+    private final StatusTransitionValidator statusValidator;
+    private final AuditLogService auditLogService;
 
     @Override
     public OrderDTO createOrder(@NonNull UUID patientId, @NonNull CreateOrderDTO createOrderDTO) {
@@ -152,6 +158,11 @@ public class OrderServiceImplementation implements OrderServiceInterface {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        // VALIDATION: Vérifier que la transition de statut est autorisée
+        OrderStatus oldStatus = order.getStatus();
+        statusValidator.validateTransition(oldStatus, status);
+        log.info("Status transition validated: {} -> {} for order {}", oldStatus, status, orderId);
+
         // Handle transitions if needed (e.g., reduce stock on CONFIRMED if not done)
         // For now, simple state update
         // APRÈS : Ajouter la gestion de l'annulation
@@ -163,6 +174,29 @@ public class OrderServiceImplementation implements OrderServiceInterface {
         }
 
         order.setStatus(status);
+
+        // AUDIT: Logger le changement de statut
+        try {
+            java.util.Map<String, Object> auditDetails = java.util.Map.of(
+                    "orderId", orderId.toString(),
+                    "orderNumber", order.getOrderNumber(),
+                    "oldStatus", oldStatus.toString(),
+                    "newStatus", status.toString(),
+                    "pharmacyId", order.getPharmacy().getId().toString());
+            auditLogService.logAction(
+                    UUID.randomUUID(), // TODO: Get from Authentication
+                    "SYSTEM", // TODO: Get from Authentication
+                    "UPDATE_ORDER_STATUS",
+                    "ORDER",
+                    orderId,
+                    auditDetails,
+                    "INTERNAL",
+                    "OrderService",
+                    order.getPharmacy().getId());
+        } catch (Exception e) {
+            log.error("Failed to log audit for order status update", e);
+        }
+
         if (status == OrderStatus.DELIVERED) {
             order.setDeliveredAt(LocalDateTime.now());
         } else if (status == OrderStatus.CONFIRMED || status == OrderStatus.PAID) {

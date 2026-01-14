@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 import java.util.List;
 
@@ -22,6 +24,7 @@ import java.util.List;
 public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;
+    private final com.app.easypharma_backend.domain.employee.service.EmployeeReportService reportService;
 
     @Operation(summary = "Statistiques Globales", description = "Revenus, volume de commandes, pharmacies actives")
     @GetMapping("/stats")
@@ -39,5 +42,24 @@ public class AdminDashboardController {
     @GetMapping("/top-medications/searched")
     public ResponseEntity<List<TopMedicationDTO>> getTopSearched() {
         return ResponseEntity.ok(adminDashboardService.getTopSearchedMedications());
+    }
+
+    @Operation(summary = "Exporter Rapport Global", description = "Générer un fichier CSV des statistiques globales")
+    @GetMapping("/report")
+    public void exportGlobalReport(
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) @org.springframework.web.bind.annotation.RequestParam(required = false) java.time.LocalDate startDate,
+            @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) @org.springframework.web.bind.annotation.RequestParam(required = false) java.time.LocalDate endDate,
+            HttpServletResponse response) throws IOException {
+
+        if (startDate == null)
+            startDate = java.time.LocalDate.now().minusMonths(1);
+        if (endDate == null)
+            endDate = java.time.LocalDate.now();
+
+        byte[] csvData = reportService.generateGlobalAdminReport(startDate, endDate);
+
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=global-admin-report.csv");
+        response.getOutputStream().write(csvData);
     }
 }

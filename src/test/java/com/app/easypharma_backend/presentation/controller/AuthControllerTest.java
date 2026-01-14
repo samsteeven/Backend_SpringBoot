@@ -2,7 +2,7 @@ package com.app.easypharma_backend.presentation.controller;
 
 import com.app.easypharma_backend.application.auth.usecase.*;
 import com.app.easypharma_backend.infrastructure.security.JwtService;
-import com.app.easypharma_backend.domain.auth.service.AuditService;
+// AuditService import removed - service no longer exists
 import com.app.easypharma_backend.infrastructure.security.RateLimitingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -55,11 +56,16 @@ class AuthControllerTest {
         @MockBean
         private JwtService jwtService;
 
-        @MockBean
-        private AuditService auditService;
+        // AuditService removed - no longer needed
 
         @MockBean
         private RateLimitingService rateLimitingService;
+
+        @MockBean
+        private UserDetailsService userDetailsService;
+
+        @MockBean
+        private com.app.easypharma_backend.infrastructure.security.JwtFilter jwtFilter;
 
         @Test
         void register_shouldReturnOk_andCallRegisterUseCase() throws Exception {
@@ -70,7 +76,7 @@ class AuthControllerTest {
                                                 put("password", "P@ssw0rdA");
                                                 put("firstName", "John");
                                                 put("lastName", "Doe");
-                                                put("phone", "+237600000000");
+                                                put("phone", "600000000");
                                                 put("role", "PATIENT");
                                         }
                                 });
@@ -156,6 +162,7 @@ class AuthControllerTest {
                                         }
                                 });
 
+                when(rateLimitingService.tryConsume(anyString())).thenReturn(true);
                 doNothing().when(forgotPasswordUseCase).execute(anyString(), anyString(), anyString());
 
                 mockMvc.perform(post("/api/v1/auth/forgot-password")

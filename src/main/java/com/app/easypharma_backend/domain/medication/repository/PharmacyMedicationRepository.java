@@ -58,37 +58,36 @@ public interface PharmacyMedicationRepository extends JpaRepository<PharmacyMedi
             @Param("maxPrice") BigDecimal maxPrice);
 
     // Recherche globale pour les patients
-    @Query("""
-            SELECT pm FROM PharmacyMedication pm
-            JOIN pm.medication m
-            JOIN pm.pharmacy p
-            WHERE pm.isAvailable = true
-            AND p.status = 'APPROVED'
-            AND (
-                LOWER(m.name) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(m.genericName) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(m.symptoms) LIKE LOWER(CONCAT('%', :query, '%'))
-            )
-            AND (:therapeuticClass IS NULL OR m.therapeuticClass = :therapeuticClass)
-            """)
-    List<PharmacyMedication> searchGlobal(
-            @Param("query") String query,
-            @Param("therapeuticClass") com.app.easypharma_backend.domain.medication.entity.TherapeuticClass therapeuticClass);
-
-    // Recherche avec tri PostGIS natif (ST_DistanceSphere)
-    // Note: On cast les colonnes numeric en geometry point à la volée
     @Query(value = """
-            SELECT pm.* FROM pharmacy_medication pm
+            SELECT pm.* FROM pharmacy_medications pm
             JOIN medications m ON pm.medication_id = m.id
             JOIN pharmacies p ON pm.pharmacy_id = p.id
             WHERE pm.is_available = true
             AND p.status = 'APPROVED'
             AND (
-                LOWER(m.name) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(m.generic_name) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(m.symptoms) LIKE LOWER(CONCAT('%', :query, '%'))
+                m.name ILIKE '%' || CAST(:query AS text) || '%'
+                OR m.generic_name ILIKE '%' || CAST(:query AS text) || '%'
+                OR m.symptoms ILIKE '%' || CAST(:query AS text) || '%'
             )
-            AND (:therapeuticClass IS NULL OR m.therapeutic_class = :therapeuticClass)
+            AND (CAST(:therapeuticClass AS text) IS NULL OR m.therapeutic_class = CAST(:therapeuticClass AS text))
+            """, nativeQuery = true)
+    List<PharmacyMedication> searchGlobal(
+            @Param("query") String query,
+            @Param("therapeuticClass") String therapeuticClass);
+
+    // Recherche avec tri PostGIS natif (ST_DistanceSphere)
+    @Query(value = """
+            SELECT pm.* FROM pharmacy_medications pm
+            JOIN medications m ON pm.medication_id = m.id
+            JOIN pharmacies p ON pm.pharmacy_id = p.id
+            WHERE pm.is_available = true
+            AND p.status = 'APPROVED'
+            AND (
+                m.name ILIKE '%' || CAST(:query AS text) || '%'
+                OR m.generic_name ILIKE '%' || CAST(:query AS text) || '%'
+                OR m.symptoms ILIKE '%' || CAST(:query AS text) || '%'
+            )
+            AND (CAST(:therapeuticClass AS text) IS NULL OR m.therapeutic_class = CAST(:therapeuticClass AS text))
             ORDER BY ST_DistanceSphere(
                 ST_MakePoint(CAST(p.longitude AS DOUBLE PRECISION), CAST(p.latitude AS DOUBLE PRECISION)),
                 ST_MakePoint(:userLon, :userLat)
@@ -96,8 +95,7 @@ public interface PharmacyMedicationRepository extends JpaRepository<PharmacyMedi
             """, nativeQuery = true)
     List<PharmacyMedication> searchGlobalPostGIS(
             @Param("query") String query,
-            @Param("therapeuticClass") String therapeuticClass, // En natif, on passe souvent la string de
-                                                                // l'enum
+            @Param("therapeuticClass") String therapeuticClass,
             @Param("userLat") Double userLat,
             @Param("userLon") Double userLon);
 }

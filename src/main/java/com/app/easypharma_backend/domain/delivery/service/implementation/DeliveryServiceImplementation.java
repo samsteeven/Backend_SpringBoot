@@ -54,8 +54,9 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
         User courier = userRepository.findById(courierId)
                 .orElseThrow(() -> new RuntimeException("Courier not found with ID: " + courierId));
 
-        if (courier.getRole() != UserRole.DELIVERY) {
-            throw new RuntimeException("User is not a courier (Role: " + courier.getRole() + ")");
+        if (courier.getRole() != UserRole.DELIVERY && courier.getRole() != UserRole.PHARMACY_EMPLOYEE) {
+            throw new RuntimeException(
+                    "L'utilisateur n'est pas autorisé à livrer (Rôle actuel: " + courier.getRole() + ")");
         }
 
         // 4. Verify Courier belongs to Pharmacy (Optional, depends on business logic)
@@ -104,9 +105,9 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
     }
 
     @Override
-    public List<AvailableOrderDTO> getAvailableOrders(@NonNull UUID deliveryPersonId, 
-                                                       BigDecimal userLatitude, 
-                                                       BigDecimal userLongitude) {
+    public List<AvailableOrderDTO> getAvailableOrders(@NonNull UUID deliveryPersonId,
+            BigDecimal userLatitude,
+            BigDecimal userLongitude) {
         Objects.requireNonNull(deliveryPersonId, "Delivery person ID cannot be null");
 
         // 1. Vérifier que le livreur existe et a le rôle DELIVERY
@@ -124,7 +125,8 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
 
         UUID pharmacyId = deliveryPerson.getPharmacy().getId();
 
-        // 3. Récupérer toutes les commandes READY de cette pharmacie qui n'ont pas de livraison
+        // 3. Récupérer toutes les commandes READY de cette pharmacie qui n'ont pas de
+        // livraison
         List<Order> readyOrders = orderRepository.findByPharmacyIdAndStatus(pharmacyId, OrderStatus.READY);
 
         // 4. Filtrer les commandes qui n'ont pas déjà une livraison assignée
@@ -168,7 +170,8 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
 
         // 4. Vérifier que la commande est en statut READY (prête pour livraison)
         if (order.getStatus() != OrderStatus.READY) {
-            throw new RuntimeException("La commande n'est pas prête pour la livraison. Statut actuel: " + order.getStatus());
+            throw new RuntimeException(
+                    "La commande n'est pas prête pour la livraison. Statut actuel: " + order.getStatus());
         }
 
         // 5. Vérifier qu'une livraison n'existe pas déjà
@@ -222,14 +225,13 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
                 .build();
 
         // Calculer la distance si les coordonnées du livreur sont fournies
-        if (userLatitude != null && userLongitude != null && 
-            order.getDeliveryLatitude() != null && order.getDeliveryLongitude() != null) {
+        if (userLatitude != null && userLongitude != null &&
+                order.getDeliveryLatitude() != null && order.getDeliveryLongitude() != null) {
             double distance = calculateDistance(
                     userLatitude.doubleValue(),
                     userLongitude.doubleValue(),
                     order.getDeliveryLatitude().doubleValue(),
-                    order.getDeliveryLongitude().doubleValue()
-            );
+                    order.getDeliveryLongitude().doubleValue());
             dto.setDistanceKm(distance);
         }
 
@@ -245,7 +247,7 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+                        * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c; // Distance in km
     }

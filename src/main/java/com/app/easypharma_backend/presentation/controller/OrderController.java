@@ -26,7 +26,8 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderServiceInterface orderService;
-    private final UserRepository userRepository; // To fetch ID from Auth
+    private final UserRepository userRepository;
+    private final com.app.easypharma_backend.domain.employee.service.EmployeePermissionService permissionService;
 
     @Operation(summary = "Créer une commande", description = "Le patient crée une commande")
     @PostMapping
@@ -76,9 +77,25 @@ public class OrderController {
     @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE') or hasRole('SUPER_ADMIN')")
     public ResponseEntity<OrderDTO> updateStatus(
             @PathVariable @NonNull UUID id,
-            @RequestParam @NonNull OrderStatus status) {
+            @RequestParam @NonNull OrderStatus status,
+            Authentication authentication) {
         Objects.requireNonNull(id, "Order ID cannot be null");
         Objects.requireNonNull(status, "Order status cannot be null");
+
+        // Vérifier permission PREPARE_ORDERS pour employés
+        UUID userId = getCurrentUserId();
+        com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if ("PHARMACY_EMPLOYEE".equals(user.getRole().name())) {
+            if (status == OrderStatus.PREPARING || status == OrderStatus.READY) {
+                if (!permissionService.hasPermission(userId, "PREPARE_ORDERS")) {
+                    throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                            "Permission denied: canPrepareOrders required");
+                }
+            }
+        }
+
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
 

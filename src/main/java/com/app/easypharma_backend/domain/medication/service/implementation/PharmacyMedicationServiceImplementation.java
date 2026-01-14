@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,7 +34,7 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
     @Override
     public PharmacyMedicationDTO addMedicationToPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId,
             BigDecimal price,
-            Integer stock) {
+            Integer stock, LocalDate expiryDate) {
         Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
         Objects.requireNonNull(medicationId, "Medication ID cannot be null");
 
@@ -55,6 +56,7 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
                 .medication(medication)
                 .price(price)
                 .stockQuantity(stock)
+                .expiryDate(expiryDate)
                 .isAvailable(stock > 0)
                 .build();
 
@@ -84,6 +86,17 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
 
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
         item.setPrice(price);
+        return pharmacyMedicationMapper.toDTO(pharmacyMedicationRepository.save(item));
+    }
+
+    @Override
+    public PharmacyMedicationDTO updateExpiryDate(@NonNull UUID pharmacyId, @NonNull UUID medicationId,
+            LocalDate expiryDate) {
+        Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
+        Objects.requireNonNull(medicationId, "Medication ID cannot be null");
+
+        PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
+        item.setExpiryDate(expiryDate);
         return pharmacyMedicationMapper.toDTO(pharmacyMedicationRepository.save(item));
     }
 

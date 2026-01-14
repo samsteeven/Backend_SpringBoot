@@ -99,9 +99,9 @@ public class PatientSearchIntegrationTest {
 
                 // Add stocks
                 pharmacyMedicationService.addMedicationToPharmacy(pharmacy.getId(), med1.getId(),
-                                BigDecimal.valueOf(500), 50);
+                                BigDecimal.valueOf(500), 50, null);
                 pharmacyMedicationService.addMedicationToPharmacy(pharmacy.getId(), med2.getId(),
-                                BigDecimal.valueOf(2000), 20);
+                                BigDecimal.valueOf(2000), 20, null);
         }
 
         @Test

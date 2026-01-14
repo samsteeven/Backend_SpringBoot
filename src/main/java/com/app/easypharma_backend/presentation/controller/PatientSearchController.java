@@ -83,16 +83,16 @@ public class PatientSearchController {
         }
 
         List<PharmacyMedication> results;
+        String therapeuticClassStr = therapeuticClass != null ? therapeuticClass.name() : null;
         if ("POSTGIS_NEAREST".equalsIgnoreCase(sortBy)) {
             if (userLat == null || userLon == null) {
                 return ResponseEntity.badRequest().build();
             }
             // Use PostGIS native query for efficient spatial sorting
-            String therapeuticClassStr = therapeuticClass != null ? therapeuticClass.name() : null;
             results = pharmacyMedicationRepository.searchGlobalPostGIS(query, therapeuticClassStr, userLat, userLon);
         } else {
             // Default JPQL search
-            results = pharmacyMedicationRepository.searchGlobal(query, therapeuticClass);
+            results = pharmacyMedicationRepository.searchGlobal(query, therapeuticClassStr);
         }
 
         Double finalUserLat = userLat;
@@ -118,6 +118,7 @@ public class PatientSearchController {
                             .price(pm.getPrice())
                             .isAvailable(pm.getIsAvailable())
                             .stockQuantity(pm.getStockQuantity())
+                            .expiryDate(pm.getExpiryDate())
                             .pharmacy(pharmacyDTO)
                             .averageRating(pm.getPharmacy().getAverageRating())
                             .ratingCount(pm.getPharmacy().getRatingCount())

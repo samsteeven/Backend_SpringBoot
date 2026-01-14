@@ -1,6 +1,5 @@
 package com.app.easypharma_backend.application.auth.usecase;
 
-import com.app.easypharma_backend.domain.auth.service.AuditService;
 import com.app.easypharma_backend.domain.auth.service.PasswordResetService;
 import com.app.easypharma_backend.domain.notification.service.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,7 @@ public class ForgotPasswordUseCase {
 
     private final PasswordResetService passwordResetService;
     private final NotificationService notificationService;
-    private final AuditService auditService;
+    // AuditService removed - use new audit.AuditLogService if needed
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -53,12 +52,14 @@ public class ForgotPasswordUseCase {
                 notificationService.sendEmail(email, subject, body);
 
             // Log d'audit pour succès
-            auditService.logPasswordResetRequest(email, ipAddress, userAgent, true, "Email envoyé avec succès");
+            // auditService.logPasswordResetRequest(email, ipAddress, userAgent, true,
+            // "Email envoyé avec succès");
 
             log.info("Email de réinitialisation envoyé pour: {}", email);
         } catch (Exception e) {
             // Log d'audit pour échec
-            auditService.logPasswordResetRequest(email, ipAddress, userAgent, false, e.getMessage());
+            // auditService.logPasswordResetRequest(email, ipAddress, userAgent, false,
+            // e.getMessage());
 
             // Ne pas révéler si l'email existe ou non pour des raisons de sécurité
             log.warn("Tentative de réinitialisation de mot de passe pour un email non existant ou erreur: {} - {}",

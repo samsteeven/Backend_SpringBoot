@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,14 +36,16 @@ public class PharmacyMedicationController {
             @PathVariable @NonNull UUID pharmacyId,
             @RequestParam @NonNull UUID medicationId,
             @RequestParam @NonNull BigDecimal price,
-            @RequestParam @NonNull Integer stock) {
+            @RequestParam @NonNull Integer stock,
+            @RequestParam(required = false) LocalDate expiryDate) {
         return ResponseEntity
-                .ok(pharmacyMedicationService.addMedicationToPharmacy(pharmacyId, medicationId, price, stock));
+                .ok(pharmacyMedicationService.addMedicationToPharmacy(pharmacyId, medicationId, price, stock,
+                        expiryDate));
     }
 
     @Operation(summary = "Mettre à jour le stock", description = "Met à jour la quantité en stock d'un médicament")
     @PatchMapping("/{medicationId}/stock")
-    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE')")
     public ResponseEntity<PharmacyMedicationDTO> updateStock(
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId,
@@ -52,7 +55,7 @@ public class PharmacyMedicationController {
 
     @Operation(summary = "Mettre à jour le prix", description = "Met à jour le prix d'un médicament")
     @PatchMapping("/{medicationId}/price")
-    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE')")
     public ResponseEntity<PharmacyMedicationDTO> updatePrice(
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId,

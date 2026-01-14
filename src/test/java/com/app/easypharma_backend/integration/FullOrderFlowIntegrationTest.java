@@ -119,7 +119,7 @@ public class FullOrderFlowIntegrationTest {
                 Integer initialStock = 10;
 
                 PharmacyMedicationDTO inventoryItem = pharmacyMedicationService.addMedicationToPharmacy(
-                                pharmacy.getId(), medication.getId(), price, initialStock);
+                                pharmacy.getId(), medication.getId(), price, initialStock, null);
 
                 assertNotNull(inventoryItem);
                 assertEquals(price, inventoryItem.getPrice());
