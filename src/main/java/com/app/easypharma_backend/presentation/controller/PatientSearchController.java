@@ -119,6 +119,8 @@ public class PatientSearchController {
                             .isAvailable(pm.getIsAvailable())
                             .stockQuantity(pm.getStockQuantity())
                             .pharmacy(pharmacyDTO)
+                            .averageRating(pm.getPharmacy().getAverageRating())
+                            .ratingCount(pm.getPharmacy().getRatingCount())
                             .distanceKm(distance)
                             .build();
                 })
