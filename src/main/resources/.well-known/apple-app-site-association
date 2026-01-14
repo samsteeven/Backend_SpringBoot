@@ -3,8 +3,10 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAM_ID.com.app.easypharma",
-        "paths": ["/reset-password*"]
+        "appID": "TEAM_ID.com.example.easypharma_flutter",
+        "paths": [
+          "/reset-password*"
+        ]
       }
     ]
   }

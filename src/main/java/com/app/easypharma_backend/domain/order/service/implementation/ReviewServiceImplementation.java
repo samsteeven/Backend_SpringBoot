@@ -65,14 +65,32 @@ public class ReviewServiceImplementation {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Avis non trouvé"));
 
+        ReviewStatus oldStatus = review.getStatus();
         review.setStatus(status);
         Review saved = reviewRepository.save(review);
 
-        if (status == ReviewStatus.APPROVED) {
+        // Mettre à jour la moyenne si le statut passe à APPROVED ou s'il l'était déjà
+        if (status == ReviewStatus.APPROVED || oldStatus == ReviewStatus.APPROVED) {
             updatePharmacyAverageRating(review.getPharmacy().getId());
         }
 
         return mapToDTO(saved);
+    }
+
+    public void deleteReview(UUID reviewId, UUID patientId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Avis non trouvé"));
+
+        if (!review.getPatient().getId().equals(patientId)) {
+            throw new RuntimeException("Vous ne pouvez supprimer que votre propre avis");
+        }
+
+        boolean wasApproved = review.getStatus() == ReviewStatus.APPROVED;
+        reviewRepository.delete(review);
+
+        if (wasApproved) {
+            updatePharmacyAverageRating(review.getPharmacy().getId());
+        }
     }
 
     private void updatePharmacyAverageRating(UUID pharmacyId) {
@@ -88,15 +106,36 @@ public class ReviewServiceImplementation {
     }
 
     public List<ReviewDTO> getPharmacyReviews(UUID pharmacyId) {
-        return reviewRepository.findByPharmacyIdAndStatusOrderByCreatedAtDesc(pharmacyId, ReviewStatus.APPROVED)
-                .stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return getPharmacyReviews(pharmacyId, null);
+    }
+
+    public List<ReviewDTO> getPharmacyReviews(UUID pharmacyId, UUID currentPatientId) {
+        // Récupérer tous les avis approuvés
+        List<Review> approved = reviewRepository.findByPharmacyIdAndStatusOrderByCreatedAtDesc(pharmacyId,
+                ReviewStatus.APPROVED);
+
+        // Si utilisateur connecté, récupérer son avis (même si PENDING) et l'ajouter si
+        // présent
+        if (currentPatientId != null) {
+            List<Review> patientReviews = reviewRepository.findByPharmacyIdAndPatientIdOrderByCreatedAtDesc(pharmacyId,
+                    currentPatientId);
+
+            // Fusionner en évitant les doublons (même id)
+            for (Review r : patientReviews) {
+                boolean exists = approved.stream().anyMatch(a -> a.getId().equals(r.getId()));
+                if (!exists) {
+                    approved.add(0, r); // ajouter en tête pour garder l'ordre récent
+                }
+            }
+        }
+
+        return approved.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     private ReviewDTO mapToDTO(Review review) {
         return ReviewDTO.builder()
                 .id(review.getId())
+                .patientId(review.getPatient().getId())
                 .patientName(review.getPatient().getFirstName() + " " + review.getPatient().getLastName())
                 .pharmacyName(review.getPharmacy().getName())
                 .courierName(review.getCourier() != null

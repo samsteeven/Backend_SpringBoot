@@ -39,7 +39,8 @@ public class ReviewController {
     @Operation(summary = "Lister les avis d'une pharmacie", description = "Récupère les avis approuvés pour une pharmacie")
     @GetMapping("/pharmacy/{pharmacyId}")
     public ResponseEntity<List<ReviewDTO>> getPharmacyReviews(@PathVariable @NonNull UUID pharmacyId) {
-        return ResponseEntity.ok(reviewService.getPharmacyReviews(pharmacyId));
+        UUID currentUser = getCurrentUserIdOrNull();
+        return ResponseEntity.ok(reviewService.getPharmacyReviews(pharmacyId, currentUser));
     }
 
     @Operation(summary = "Modérer un avis (Admin)", description = "Approuver ou rejeter un avis")
@@ -51,11 +52,30 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.moderateReview(id, status));
     }
 
+    @Operation(summary = "Supprimer son avis", description = "Permet au patient de supprimer son avis")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<Void> deleteReview(@PathVariable @NonNull UUID id) {
+        UUID patientId = getCurrentUserId();
+        reviewService.deleteReview(id, patientId);
+        return ResponseEntity.ok().build();
+    }
+
     private UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"))
                 .getId();
+    }
+
+    private UUID getCurrentUserIdOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+
+        String email = auth.getName();
+        return userRepository.findByEmail(email).map(u -> u.getId()).orElse(null);
     }
 }

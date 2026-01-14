@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,14 +55,27 @@ public class NotificationServiceImplementation implements NotificationService {
     @Override
     public void sendEmail(String email, String subject, String body) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(email);
-            message.setSubject(subject);
-            message.setText(body);
-            message.setFrom("no-reply@easypharma.com");
+            // Supporter le HTML si le body contient du HTML, sinon envoyer en plain text
+            if (body != null && (body.contains("<html") || body.contains("<a ") || body.contains("<br"))) {
+                MimeMessage mimeMessage = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+                helper.setTo(email);
+                helper.setSubject(subject);
+                helper.setFrom("no-reply@easypharma.com");
+                helper.setText(body, true); // true = isHtml
+                mailSender.send(mimeMessage);
+            } else {
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setTo(email);
+                message.setSubject(subject);
+                message.setText(body);
+                message.setFrom("no-reply@easypharma.com");
+                mailSender.send(message);
+            }
 
-            mailSender.send(message);
             log.info("Email sent successfully to: {}", email);
+        } catch (MessagingException me) {
+            log.error("Failed to build/send MIME email to {}: {}", email, me.getMessage());
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", email, e.getMessage());
         }

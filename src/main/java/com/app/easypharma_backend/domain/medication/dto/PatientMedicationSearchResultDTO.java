@@ -32,4 +32,6 @@ public class PatientMedicationSearchResultDTO {
 
     // Contextual Info (calculated)
     private Double distanceKm; // Filled if user location provided
+    private Double averageRating;
+    private Integer ratingCount;
 }
