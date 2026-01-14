@@ -22,4 +22,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     @Query("SELECT COUNT(r) FROM Review r WHERE r.pharmacy.id = :pharmacyId AND r.status = 'APPROVED'")
     Integer countApprovedReviews(@Param("pharmacyId") UUID pharmacyId);
+
+    List<Review> findByPharmacyIdAndPatientIdOrderByCreatedAtDesc(UUID pharmacyId, UUID patientId);
 }

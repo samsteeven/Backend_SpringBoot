@@ -14,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ReviewDTO {
     private UUID id;
+    private UUID patientId;
     private String patientName;
     private String pharmacyName;
     private String courierName;

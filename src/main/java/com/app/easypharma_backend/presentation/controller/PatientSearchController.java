@@ -120,6 +120,8 @@ public class PatientSearchController {
                             .stockQuantity(pm.getStockQuantity())
                             .expiryDate(pm.getExpiryDate())
                             .pharmacy(pharmacyDTO)
+                            .averageRating(pm.getPharmacy().getAverageRating())
+                            .ratingCount(pm.getPharmacy().getRatingCount())
                             .distanceKm(distance)
                             .build();
                 })
