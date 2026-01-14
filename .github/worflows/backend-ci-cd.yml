@@ -1,14 +1,26 @@
 name: Backend CI/CD
-
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  push: [ "main" ]
+  pull_request: [ "main" ]
 
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: easypharma
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout sources
@@ -28,8 +40,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "✅ PostgreSQL ready!"
+              break
+            fi
+            echo "⏳ Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done || (echo "❌ PostgreSQL timeout!" && exit 1)
+
       - name: Run Maven tests
         run: mvn test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/easypharma
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+          SPRING_FLYWAY_ENABLED: false
+
+      - name: Build Maven package
+        run: mvn clean package -DskipTests
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
