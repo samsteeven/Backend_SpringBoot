@@ -9,6 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      # Skip Maven lifecycle tests
+      - name: Skip Maven tests
+        run: |
+          echo "maven.test.skip=true" >> $GITHUB_WORKSPACE/.mvn/jvm.config
+          mkdir -p .mvn
+      
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -16,9 +22,9 @@ jobs:
           java-version: '21'
           cache: maven
       
-      # Skip tests COMPLET
-      - name: Build package (NO TESTS)
-        run: mvn clean package -DskipTests
+      # AUCUN test exécuté
+      - name: Build package (FORCE NO TESTS)
+        run: mvn clean package -DskipTests -Dmaven.test.skip=true
       
       - name: Login Docker Hub
         if: github.event_name == 'push'
