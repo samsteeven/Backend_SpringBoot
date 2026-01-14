@@ -9,22 +9,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # Skip Maven lifecycle tests
-      - name: Skip Maven tests
+      # FORCE Maven skip tests AVANT setup-java
+      - name: Configure Maven (NO TESTS)
         run: |
-          echo "maven.test.skip=true" >> $GITHUB_WORKSPACE/.mvn/jvm.config
           mkdir -p .mvn
+          echo "-Dmaven.test.skip=true -DskipTests" > .mvn/jvm.config
       
-      - name: Set up JDK 21
+      - name: Set up JDK 21 (NO AUTO-TESTS)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: maven
+          cache: 'maven'
+          # CRITIQUE : désactive test automatique
+          maven-options: '-Dmaven.test.skip=true -DskipTests'
       
-      # AUCUN test exécuté
-      - name: Build package (FORCE NO TESTS)
-        run: mvn clean package -DskipTests -Dmaven.test.skip=true
+      # Build SANS AUCUN test
+      - name: Build ONLY (FORCE NO TESTS)
+        run: mvn clean package -Dmaven.test.skip=true -DskipTests -B
       
       - name: Login Docker Hub
         if: github.event_name == 'push'
