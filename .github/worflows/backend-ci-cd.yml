@@ -1,5 +1,4 @@
 name: Backend CI/CD
-
 on:
   push:
     branches: [ "main", "feat/dockeriser" ]
@@ -9,17 +8,18 @@ on:
 jobs:
   build-push:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-      
-      
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Configure Maven (NO TESTS)
         run: |
           mkdir -p .mvn
           echo "-Dmaven.test.skip=true -DskipTests" > .mvn/jvm.config
-      
-      - name: Set up JDK 21 (NO AUTO-TESTS)
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -28,8 +28,6 @@ jobs:
 
       - name: Build & Package (Skip Tests)
         run: mvn clean package -DskipTests -Dmaven.javadoc.skip=true
-        env:
-          SPRING_PROFILES_ACTIVE: dev
 
       - name: Verify JAR
         run: |
