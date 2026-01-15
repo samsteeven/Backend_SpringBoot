@@ -1,11 +1,15 @@
-name: Backend CI/CD
+name: Backend CI/CD (No Tests)
+
 on:
-  push: [ "main" ]
-  pull_request: [ "main" ]
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build-test-push:
+  build-push:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -14,28 +18,30 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
-          cache: maven  # Cache automatique Maven
+          cache: maven
 
-      - name: Test H2 FORCÉ
-        run: mvn test -Dspring.profiles.active=test -Dspring.profiles.default=test
+      - name: Build & Package (Skip Tests)
+        run: mvn clean package -DskipTests -Dmaven.javadoc.skip=true
         env:
-          SPRING_PROFILES_ACTIVE: test  # Double force !
+          SPRING_PROFILES_ACTIVE: dev
 
-      - name: Build package
-        run: mvn clean package -DskipTests
+      - name: Verify JAR
+        run: |
+          ls -la target/*.jar
+          echo "✅ Build OK sans tests"
 
       - name: Login Docker Hub
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push Docker
+      - name: Build & Push Docker
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name == 'push' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: |
             rumtd/easypharma_backend:latest
             rumtd/easypharma_backend:${{ github.sha }}

@@ -26,10 +26,21 @@ spring:
     console:
       enabled: true
       path: /h2-console
-  
+
+  # DÉSACTIVE Redis/RabbitMQ (qui plantent en CI)
+  autoconfigure:
+    exclude:
+        - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+        - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+        - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
   # Désactiver Flyway pour les tests
   flyway:
     enabled: false
+   # Sécurité désactivée pour tests
+  security:
+    user:
+      name: admin
+      password: ad
 
 # Logging pour les tests
 logging:

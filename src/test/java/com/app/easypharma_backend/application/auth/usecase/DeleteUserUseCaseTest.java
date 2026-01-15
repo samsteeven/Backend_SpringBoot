@@ -4,6 +4,7 @@ import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import com.app.easypharma_backend.domain.auth.repository.RefreshTokenRepository;
+import com.app.easypharma_backend.domain.search.repository.SearchLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -22,6 +23,8 @@ class DeleteUserUseCaseTest {
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
+    @Mock
+    private SearchLogRepository searchLogRepository;
     @InjectMocks
     private DeleteUserUseCase deleteUserUseCase;
 
