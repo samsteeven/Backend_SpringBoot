@@ -169,6 +169,12 @@ public class PatientScenarioTest {
             }
         };
 
+        // --- 2.5 Manually Confirm Order (Required before Payment) ---
+        com.app.easypharma_backend.domain.order.entity.Order orderToConfirm = orderRepository
+                .findById(java.util.UUID.fromString(orderId)).orElseThrow();
+        orderToConfirm.setStatus(com.app.easypharma_backend.domain.order.entity.OrderStatus.CONFIRMED);
+        orderRepository.save(orderToConfirm);
+
         mockMvc.perform(post("/api/v1/payments/process")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(paymentPayload)))

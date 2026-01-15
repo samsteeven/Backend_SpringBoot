@@ -15,6 +15,11 @@ public interface PharmacyServiceInterface {
     List<PharmacyDTO> getAllPharmacies();
 
     /**
+     * Récupère toutes les pharmacies pour l'admin (y compris Pending/Rejected)
+     */
+    List<PharmacyDTO> getAllPharmaciesForAdmin();
+
+    /**
      * Récupère une pharmacie par ID
      */
     PharmacyDTO getPharmacyById(@NonNull UUID id);

@@ -38,6 +38,13 @@ public class PharmacyController {
                 return ResponseEntity.ok(pharmacyService.getAllPharmacies());
         }
 
+        @Operation(summary = "Lister TOUTES les pharmacies (Admin)", description = "Retourne la liste complète de toutes les pharmacies, y compris PENDING/REJECTED. Rôle SUPER_ADMIN requis.")
+        @GetMapping("/admin/all")
+        @PreAuthorize("hasRole('SUPER_ADMIN')")
+        public ResponseEntity<List<PharmacyDTO>> getAllPharmaciesForAdmin() {
+                return ResponseEntity.ok(pharmacyService.getAllPharmaciesForAdmin());
+        }
+
         @Operation(summary = "Récupérer une pharmacie par ID", description = "Retourne les détails d’une pharmacie à partir de son identifiant unique.")
         @ApiResponse(responseCode = "200", description = "Pharmacie trouvée")
         @ApiResponse(responseCode = "404", description = "Pharmacie introuvable")

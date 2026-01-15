@@ -148,7 +148,7 @@ public class PharmacistScenarioTest {
                 order = orderRepository.save(Order.builder()
                                 .pharmacy(pharmacy)
                                 .patient(patient)
-                                .status(OrderStatus.PAID)
+                                .status(OrderStatus.PENDING)
                                 .totalAmount(BigDecimal.valueOf(1000))
                                 .orderNumber("ORD-FLOW-001")
                                 .deliveryAddress("Home")
