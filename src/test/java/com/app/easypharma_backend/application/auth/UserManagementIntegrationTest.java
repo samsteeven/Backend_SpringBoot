@@ -6,12 +6,15 @@ import com.app.easypharma_backend.application.auth.dto.response.AuthResponse;
 import com.app.easypharma_backend.application.auth.dto.response.UserResponse;
 import com.app.easypharma_backend.application.auth.usecase.RegisterUseCase;
 import com.app.easypharma_backend.application.auth.usecase.UpdateUserProfileUseCase;
+import com.app.easypharma_backend.config.TestMailConfiguration;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import com.app.easypharma_backend.domain.auth.repository.RefreshTokenRepository;
 import com.app.easypharma_backend.domain.auth.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.UUID;
@@ -19,6 +22,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+@Import(TestMailConfiguration.class)
 class UserManagementIntegrationTest {
 
     @Autowired
@@ -31,12 +37,6 @@ class UserManagementIntegrationTest {
     private UserRepository userRepository;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
-
-    @AfterEach
-    void tearDown() {
-        refreshTokenRepository.deleteAll();
-        userRepository.deleteAll();
-    }
 
     @Test
     void shouldRegisterAndUpdateUserSuccessfully() {
