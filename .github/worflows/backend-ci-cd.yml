@@ -2,7 +2,7 @@ name: Backend CI/CD (No Tests)
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "feat/dockeriser" ]
   pull_request:
     branches: [ "main" ]
 
