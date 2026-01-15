@@ -29,20 +29,27 @@ public class ForgotPasswordUseCase {
             // Générer le token de réinitialisation
             String token = passwordResetService.generateResetToken(email);
 
-            // Lien de réinitialisation dynamique
-            String resetLink = frontendUrl + "/reset-password?token=" + token;
+                // Lien de réinitialisation dynamique (web)
+                String resetLink = frontendUrl + "/reset-password?token=" + token;
+                // Lien custom scheme pour ouvrir l'application mobile
+                String appLink = "easypharma://reset-password?token=" + token;
 
-            String subject = "Réinitialisation de votre mot de passe - EasyPharma";
-            String body = "Bonjour,\n\n" +
-                    "Vous avez demandé la réinitialisation de votre mot de passe pour votre compte EasyPharma.\n" +
-                    "Veuillez cliquer sur le lien ci-dessous pour définir un nouveau mot de passe :\n\n" +
-                    resetLink + "\n\n" +
-                    "Ce lien expirera bientôt.\n" +
-                    "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.\n\n" +
-                    "Cordialement,\n" +
-                    "L'équipe EasyPharma";
+                String subject = "Réinitialisation de votre mot de passe - EasyPharma";
 
-            notificationService.sendEmail(email, subject, body);
+                // Corps HTML avec lien vers l'app puis fallback web
+                String body = "<html><body>" +
+                    "<p>Bonjour,</p>" +
+                    "<p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte EasyPharma.</p>" +
+                    "<p><strong>Ouvrir dans l'application :</strong><br/>" +
+                    "<a href=\"" + appLink + "\">Ouvrir dans l'application</a></p>" +
+                    "<p><strong>Ou utiliser le lien web :</strong><br/>" +
+                    "<a href=\"" + resetLink + "\">Réinitialiser votre mot de passe</a></p>" +
+                    "<p>Si le premier lien n'ouvre pas l'application, utilisez le lien web ci-dessus.</p>" +
+                    "<p>Ce lien expirera bientôt. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>" +
+                    "<p>Cordialement,<br/>L'équipe EasyPharma</p>" +
+                    "</body></html>";
+
+                notificationService.sendEmail(email, subject, body);
 
             // Log d'audit pour succès
             // auditService.logPasswordResetRequest(email, ipAddress, userAgent, true,

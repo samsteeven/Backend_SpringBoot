@@ -37,7 +37,10 @@ public class DeepLinkingController {
             log.error("assetlinks.json not found in classpath");
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok()
+            .header("ngrok-skip-browser-warning", "true")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(resource);
     }
 
     /**
