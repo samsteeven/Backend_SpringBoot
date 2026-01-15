@@ -32,7 +32,7 @@ jobs:
       - name: Verify JAR
         run: |
           ls -la target/*.jar
-          echo "✅ Build OK sans tests"
+          echo "Build OK sans tests"
 
       - name: Login Docker Hub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
