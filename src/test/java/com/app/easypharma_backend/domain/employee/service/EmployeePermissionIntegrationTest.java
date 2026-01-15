@@ -1,11 +1,13 @@
 package com.app.easypharma_backend.domain.employee.service;
 
+import com.app.easypharma_backend.config.TestMailConfiguration;
 import com.app.easypharma_backend.domain.employee.dto.EmployeePermissionDTO;
 import com.app.easypharma_backend.domain.employee.entity.EmployeePermission;
 import com.app.easypharma_backend.domain.employee.repository.EmployeePermissionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Import(TestMailConfiguration.class)
 @ActiveProfiles("test")
 @Transactional
 public class EmployeePermissionIntegrationTest {

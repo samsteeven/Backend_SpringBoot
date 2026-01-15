@@ -1,10 +1,12 @@
 package com.app.easypharma_backend.infrastructure.security;
 
+import com.app.easypharma_backend.config.TestMailConfiguration;
 import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,6 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Import(TestMailConfiguration.class)
 @ActiveProfiles("test")
 class JwtServiceTest {
 

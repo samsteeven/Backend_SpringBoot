@@ -1,5 +1,6 @@
 package com.app.easypharma_backend.domain.auth.service;
 
+import com.app.easypharma_backend.config.TestMailConfiguration;
 import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import com.app.easypharma_backend.domain.auth.repository.UserRepository;
@@ -7,6 +8,7 @@ import com.app.easypharma_backend.presentation.exception.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(TestMailConfiguration.class)
 class PasswordResetServiceTest {
 
     @Autowired

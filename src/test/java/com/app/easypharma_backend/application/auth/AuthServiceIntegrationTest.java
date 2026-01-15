@@ -5,12 +5,14 @@ import com.app.easypharma_backend.application.auth.dto.request.RegisterRequest;
 import com.app.easypharma_backend.application.auth.dto.response.AuthResponse;
 import com.app.easypharma_backend.application.auth.usecase.LoginUseCase;
 import com.app.easypharma_backend.application.auth.usecase.RegisterUseCase;
+import com.app.easypharma_backend.config.TestMailConfiguration;
 import com.app.easypharma_backend.domain.auth.entity.User;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
+@Import(TestMailConfiguration.class)
 @ActiveProfiles("test")
 @Transactional
 class AuthServiceIntegrationTest {

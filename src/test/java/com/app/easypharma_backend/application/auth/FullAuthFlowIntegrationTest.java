@@ -5,6 +5,7 @@ import com.app.easypharma_backend.application.auth.dto.request.RefreshTokenReque
 import com.app.easypharma_backend.application.auth.dto.request.RegisterRequest;
 import com.app.easypharma_backend.application.auth.dto.response.AuthResponse;
 import com.app.easypharma_backend.application.common.dto.ApiResponse;
+import com.app.easypharma_backend.config.TestMailConfiguration;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.*;
 
 import java.util.Random;
@@ -20,6 +22,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestMailConfiguration.class)
 class FullAuthFlowIntegrationTest {
 
     @Autowired

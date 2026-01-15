@@ -8,6 +8,7 @@ import com.app.easypharma_backend.application.auth.dto.response.UserResponse;
 import com.app.easypharma_backend.application.auth.usecase.RegisterUseCase;
 import com.app.easypharma_backend.application.auth.usecase.UpdateUserProfileUseCase;
 import com.app.easypharma_backend.domain.auth.entity.UserRole;
+import com.app.easypharma_backend.domain.auth.repository.RefreshTokenRepository;
 import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -27,10 +28,12 @@ class UserManagementIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
    @AfterEach
     void tearDown() {
-        userRepository.deleteAll();
+       refreshTokenRepository.deleteAll();userRepository.deleteAll();
     }
 
     @Test
