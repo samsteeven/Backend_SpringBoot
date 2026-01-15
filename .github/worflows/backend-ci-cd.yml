@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # FORCE Maven skip tests AVANT setup-java
+      
       - name: Configure Maven (NO TESTS)
         run: |
           mkdir -p .mvn
