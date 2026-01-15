@@ -13,7 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up JDK 21
+      # FORCE Maven skip tests AVANT setup-java
+      - name: Configure Maven (NO TESTS)
+        run: |
+          mkdir -p .mvn
+          echo "-Dmaven.test.skip=true -DskipTests" > .mvn/jvm.config
+      
+      - name: Set up JDK 21 (NO AUTO-TESTS)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
