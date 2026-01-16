@@ -21,9 +21,12 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # 1. Build + tests
+      # 1. Build + tests avec profil test activé
       - name: Build with tests
         run: ./mvnw clean verify -Dmaven.javadoc.skip=true
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          MAVEN_OPTS: "-Xmx1024m"
 
       - name: Verify JAR
         run: ls -la target/*.jar
@@ -33,10 +36,10 @@ jobs:
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}   # à créer dans Settings > Secrets
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3. Build & Push image en utilisant ton Dockerfile à la racine
+      # 3. Build & Push image
       - name: Build & Push Docker
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         uses: docker/build-push-action@v6
