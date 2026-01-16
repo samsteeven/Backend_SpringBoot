@@ -24,8 +24,11 @@ jobs:
       # 1. Build + tests
       - name: Build with tests
         run: ./mvnw clean verify -Dmaven.javadoc.skip=true
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          MAVEN_OPTS: "-Xmx1024m"
 
-      - name: Verify JAR
+      - na  me: Verify JAR
         run: ls -la target/*.jar
 
       # 2. Login Docker Hub (seulement push sur main)
