@@ -40,6 +40,7 @@ class JwtServiceTest {
                 .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
+                .id(UUID.randomUUID())
                 .build();
 
         // Générer un token
@@ -75,6 +76,7 @@ class JwtServiceTest {
                 .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
+                .id(UUID.randomUUID())
                 .build();
 
         String token = jwtService.generateToken(user);
@@ -98,6 +100,7 @@ class JwtServiceTest {
                 .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
+                .id(UUID.randomUUID())
                 .build();
 
         String token = jwtService.generateToken(user);
@@ -128,6 +131,7 @@ class JwtServiceTest {
                 .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
+                .id(UUID.randomUUID())
                 .build();
 
         User user2 = User.builder()
@@ -139,6 +143,7 @@ class JwtServiceTest {
                 .role(UserRole.PATIENT)
                 .isActive(true)
                 .isVerified(false)
+                .id(UUID.randomUUID())
                 .build();
 
         String token = jwtService.generateToken(user1);

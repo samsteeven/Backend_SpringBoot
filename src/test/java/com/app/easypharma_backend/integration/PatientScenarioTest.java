@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -168,6 +167,12 @@ public class PatientScenarioTest {
                 put("phoneNumber", "670000000");
             }
         };
+
+        // --- 2.5 Manually Confirm Order (Required before Payment) ---
+        com.app.easypharma_backend.domain.order.entity.Order orderToConfirm = orderRepository
+                .findById(java.util.UUID.fromString(orderId)).orElseThrow();
+        orderToConfirm.setStatus(com.app.easypharma_backend.domain.order.entity.OrderStatus.CONFIRMED);
+        orderRepository.save(orderToConfirm);
 
         mockMvc.perform(post("/api/v1/payments/process")
                 .contentType(MediaType.APPLICATION_JSON)

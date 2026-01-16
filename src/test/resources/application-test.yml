@@ -6,7 +6,7 @@
 spring:
   # Configuration de la base de données H2 pour les tests
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
     username: sa
     password: 
     driver-class-name: org.h2.Driver
@@ -28,15 +28,26 @@ spring:
       path: /h2-console
 
   # DÉSACTIVE Redis/RabbitMQ (qui plantent en CI)
+  # Mais on GARDE le Mail pour qu'il puisse injecter le mock
   autoconfigure:
     exclude:
         - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
         - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
-        - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
-  # Désactiver Flyway pour les tests
+
+  # Configuration Flyway pour les tests
   flyway:
-    enabled: false
-   # Sécurité désactivée pour tests
+    enabled: true
+    locations: classpath:db/migration
+
+  # Configuration mail factice pour éviter les erreurs de bean
+  mail:
+    host: localhost
+    port: 25
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+  # Sécurité désactivée pour tests
   security:
     user:
       name: admin
