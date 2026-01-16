@@ -28,7 +28,7 @@ jobs:
           SPRING_PROFILES_ACTIVE: test
           MAVEN_OPTS: "-Xmx1024m"
 
-      - na  me: Verify JAR
+      - name: Verify JAR
         run: ls -la target/*.jar
 
       # 2. Login Docker Hub (seulement push sur main)
