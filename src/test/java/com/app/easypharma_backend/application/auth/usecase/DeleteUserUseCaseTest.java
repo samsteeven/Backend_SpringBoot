@@ -64,8 +64,7 @@ class DeleteUserUseCaseTest {
         when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
 
         // When & Then
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> 
-                deleteUserUseCase.execute("nonexistent@example.com"))
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> deleteUserUseCase.execute("nonexistent@example.com"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Utilisateur non trouvé");
 

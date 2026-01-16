@@ -18,8 +18,9 @@ public class StatusTransitionValidator {
      * Map of allowed transitions for each status
      */
     private static final Map<OrderStatus, Set<OrderStatus>> ALLOWED_TRANSITIONS = Map.of(
-            OrderStatus.PENDING, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED),
-            OrderStatus.CONFIRMED, EnumSet.of(OrderStatus.PREPARING, OrderStatus.CANCELLED),
+            OrderStatus.PENDING, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.PAID, OrderStatus.CANCELLED),
+            OrderStatus.CONFIRMED, EnumSet.of(OrderStatus.PREPARING, OrderStatus.PAID, OrderStatus.CANCELLED),
+            OrderStatus.PAID, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.CANCELLED),
             OrderStatus.PREPARING, EnumSet.of(OrderStatus.READY, OrderStatus.CANCELLED),
             OrderStatus.READY, EnumSet.of(OrderStatus.IN_DELIVERY, OrderStatus.CANCELLED),
             OrderStatus.IN_DELIVERY, EnumSet.of(OrderStatus.DELIVERED, OrderStatus.CANCELLED),

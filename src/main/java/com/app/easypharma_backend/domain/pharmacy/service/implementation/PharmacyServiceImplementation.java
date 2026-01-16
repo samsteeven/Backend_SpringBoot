@@ -34,6 +34,12 @@ public class PharmacyServiceImplementation implements PharmacyServiceInterface {
     }
 
     @Override
+    public List<PharmacyDTO> getAllPharmaciesForAdmin() {
+        // Retourner TOUTES les pharmacies sans filtre de statut
+        return pharmacyMapper.toDTOList(pharmacyRepository.findAll());
+    }
+
+    @Override
     public PharmacyDTO getPharmacyById(@NonNull UUID id) {
         Pharmacy pharmacy = pharmacyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pharmacy not found"));

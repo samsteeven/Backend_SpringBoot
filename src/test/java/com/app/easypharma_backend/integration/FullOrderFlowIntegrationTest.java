@@ -145,6 +145,9 @@ public class FullOrderFlowIntegrationTest {
                                 medication.getId());
                 assertEquals(10, stockAfterOrder.getStockQuantity());
 
+                // --- Step 3.5: Confirm Order (Required before Payment) ---
+                orderService.updateOrderStatus(order.getId(), OrderStatus.CONFIRMED);
+
                 // --- Step 4: Process Payment ---
                 PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
                                 .orderId(order.getId())

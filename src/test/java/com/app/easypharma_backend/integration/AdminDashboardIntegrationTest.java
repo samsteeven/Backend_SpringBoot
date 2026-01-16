@@ -26,14 +26,13 @@ import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @Import(TestMailConfiguration.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
-public class AdminDashboardIntegrationTest {
+class AdminDashboardIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
