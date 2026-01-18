@@ -25,6 +25,7 @@ public class PaymentController {
 
     @Operation(summary = "Effectuer un paiement", description = "Simule un paiement Mobile Money (MTN/Orange)")
     @PostMapping("/process")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<Payment> processPayment(@RequestBody @NonNull PaymentRequestDTO request) {
         return ResponseEntity.ok(paymentService.processPayment(request));
     }

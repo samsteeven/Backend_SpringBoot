@@ -68,7 +68,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         List<Object[]> getOrderStatsByPharmacy(@Param("pharmacyId") UUID pharmacyId);
 
         // Chiffre d'affaires pharmacie
-        @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.pharmacy.id = :pharmacyId AND o.status = 'DELIVERED'")
+        @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.pharmacy.id = :pharmacyId AND o.status = com.app.easypharma_backend.domain.order.entity.OrderStatus.DELIVERED")
         BigDecimal calculateTotalRevenueByPharmacy(@Param("pharmacyId") UUID pharmacyId);
 
         // --- GLOBAL STATS FOR ADMIN ---

@@ -25,6 +25,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,6 +104,10 @@ public class FullOrderFlowIntegrationTest {
                                 .updatedAt(LocalDateTime.now())
                                 .build());
 
+                // Link pharmacist to pharmacy
+                pharmacist.setPharmacy(pharmacy);
+                userRepository.save(pharmacist);
+
                 // 3. Create Medication
                 medication = medicationRepository.save(Medication.builder()
                                 .name("Paracetamol")
@@ -136,10 +142,6 @@ public class FullOrderFlowIntegrationTest {
                 assertEquals(0, BigDecimal.valueOf(1000.0).compareTo(order.getTotalAmount())); // 500 * 2
 
                 // --- Step 3: Verify Stock is reserved/unchanged pending confirmation ---
-                // In current implementation, stock is NOT deducted on Pending, but deducted on
-                // CONFIRMED/PAID.
-                // Let's verify stock is still 10 (or check validation logic).
-                // My implementation checks stock > quantity but doesn't deduct yet.
                 PharmacyMedicationDTO stockAfterOrder = pharmacyMedicationService.getPharmacyMedication(
                                 pharmacy.getId(),
                                 medication.getId());
@@ -148,7 +150,12 @@ public class FullOrderFlowIntegrationTest {
                 // --- Step 3.5: Confirm Order (Required before Payment) ---
                 orderService.updateOrderStatus(order.getId(), OrderStatus.CONFIRMED);
 
-                // --- Step 4: Process Payment ---
+                // --- Step 4: Process Payment (with authenticated context) ---
+                // Mock authentication context for patient
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                patient.getEmail(), null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
                 PaymentRequestDTO paymentRequest = PaymentRequestDTO.builder()
                                 .orderId(order.getId())
                                 .method(PaymentMethod.MTN_MOMO)
@@ -158,14 +165,18 @@ public class FullOrderFlowIntegrationTest {
 
                 assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
                 assertNotNull(payment.getTransactionId());
+                // Verify structured transaction ID format
+                assertTrue(payment.getTransactionId().startsWith("TXN-"),
+                                "Transaction ID should start with TXN-");
+
+                // Clear security context
+                SecurityContextHolder.clearContext();
 
                 // --- Step 5: Verify Order Status Updated to PAID ---
                 OrderDTO paidOrder = orderService.getOrderById(order.getId());
                 assertEquals(OrderStatus.PAID, paidOrder.getStatus());
 
                 // --- Step 6: Verify Stock Deducted ---
-                // My implementation deducts stock when "status == PAID" via updateOrderStatus
-                // or in processPayment calling updateOrderStatus
                 PharmacyMedicationDTO finalStock = pharmacyMedicationService.getPharmacyMedication(pharmacy.getId(),
                                 medication.getId());
                 assertEquals(8, finalStock.getStockQuantity());

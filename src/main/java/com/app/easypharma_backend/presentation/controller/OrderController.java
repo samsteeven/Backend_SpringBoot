@@ -49,9 +49,16 @@ public class OrderController {
     @GetMapping("/pharmacy-orders/{pharmacyId}")
     @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('PHARMACY_EMPLOYEE')")
     public ResponseEntity<List<OrderDTO>> getPharmacyOrders(@PathVariable @NonNull UUID pharmacyId) {
-        // En théorie, on devrait vérifier si le pharmacien connecté est bien proprio de
-        // cette pharmacie
-        // Pour l'instant on laisse passer si Role Pharmacist
+        UUID userId = getCurrentUserId();
+        com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Sécurité : Vérifier que le pharmacien appartient bien à cette pharmacie
+        if (user.getPharmacy() == null || !user.getPharmacy().getId().equals(pharmacyId)) {
+            throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                    "Accès refusé : Vous n'appartenez pas à cette pharmacie");
+        }
+
         Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
         return ResponseEntity.ok(orderService.getPharmacyOrders(pharmacyId));
     }
@@ -60,6 +67,18 @@ public class OrderController {
     @GetMapping("/pharmacy-stats/{pharmacyId}")
     @PreAuthorize("hasRole('PHARMACY_ADMIN') or hasRole('SUPER_ADMIN')")
     public ResponseEntity<java.math.BigDecimal> getPharmacyStats(@PathVariable @NonNull UUID pharmacyId) {
+        UUID userId = getCurrentUserId();
+        com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Sécurité : Sauf pour SUPER_ADMIN, vérifier l'appartenance
+        if (!"SUPER_ADMIN".equals(user.getRole().name())) {
+            if (user.getPharmacy() == null || !user.getPharmacy().getId().equals(pharmacyId)) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Vous n'avez pas accès aux stats de cette pharmacie");
+            }
+        }
+
         Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
         return ResponseEntity.ok(orderService.getPharmacyRevenue(pharmacyId));
     }
@@ -69,7 +88,28 @@ public class OrderController {
     @PreAuthorize("isAuthenticated()") // Patient or Pharmacist
     public ResponseEntity<OrderDTO> getOrder(@PathVariable @NonNull UUID id) {
         Objects.requireNonNull(id, "Order ID cannot be null");
-        return ResponseEntity.ok(orderService.getOrderById(id));
+        OrderDTO order = orderService.getOrderById(id);
+
+        // Sécurité supplémentaire : Vérifier si l'utilisateur a le droit de voir cette
+        // commande
+        UUID userId = getCurrentUserId();
+        com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if ("PATIENT".equals(user.getRole().name())) {
+            if (!order.getPatientId().equals(userId)) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Cette commande ne vous appartient pas");
+            }
+        } else if ("PHARMACY_ADMIN".equals(user.getRole().name())
+                || "PHARMACY_EMPLOYEE".equals(user.getRole().name())) {
+            if (user.getPharmacy() == null || !order.getPharmacyId().equals(user.getPharmacy().getId())) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Cette commande appartient à une autre pharmacie");
+            }
+        }
+
+        return ResponseEntity.ok(order);
     }
 
     @Operation(summary = "Mettre à jour statut", description = "Pharmacien valide ou marque livré")
@@ -82,11 +122,22 @@ public class OrderController {
         Objects.requireNonNull(id, "Order ID cannot be null");
         Objects.requireNonNull(status, "Order status cannot be null");
 
-        // Vérifier permission PREPARE_ORDERS pour employés
         UUID userId = getCurrentUserId();
         com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        OrderDTO order = orderService.getOrderById(id);
+
+        // Sécurité : Vérifier que la commande appartient à la pharmacie de
+        // l'utilisateur
+        if (!"SUPER_ADMIN".equals(user.getRole().name())) {
+            if (user.getPharmacy() == null || !order.getPharmacyId().equals(user.getPharmacy().getId())) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Vous ne pouvez pas modifier une commande d'une autre pharmacie");
+            }
+        }
+
+        // Vérifier permission PREPARE_ORDERS pour employés
         if ("PHARMACY_EMPLOYEE".equals(user.getRole().name())) {
             if (status == OrderStatus.PREPARING || status == OrderStatus.READY) {
                 if (!permissionService.hasPermission(userId, "PREPARE_ORDERS")) {

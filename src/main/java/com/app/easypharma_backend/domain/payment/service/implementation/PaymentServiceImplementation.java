@@ -35,12 +35,20 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final com.app.easypharma_backend.domain.auth.repository.UserRepository userRepository;
     private final OrderServiceInterface orderService; // To update status
     private final NotificationService notificationService;
 
     @Override
     public Payment processPayment(@NonNull PaymentRequestDTO request) {
         Objects.requireNonNull(request, "Payment request cannot be null");
+
+        // 0. Get Authenticated User
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        String currentEmail = auth.getName();
+        com.app.easypharma_backend.domain.auth.entity.User authUser = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
         // Support backward compatibility
         java.util.List<UUID> targetOrderIds = request.getOrderIds();
@@ -60,6 +68,12 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
             Order order = orderRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Order not found: " + id));
 
+            // SECURITY: Cross-check ownership
+            if (!order.getPatient().getId().equals(authUser.getId())) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : La commande " + order.getOrderNumber() + " ne vous appartient pas");
+            }
+
             if (order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.DELIVERED) {
                 throw new RuntimeException("Order " + order.getOrderNumber() + " is already paid");
             }
@@ -68,9 +82,11 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
         }
 
         // Mock Payment Logic (One atomic payment for the total)
-        // In a real app, calls MTN/Orange API here with totalAmount.
         boolean isSuccess = true;
-        String sharedTransactionId = UUID.randomUUID().toString();
+
+        // Structured Transaction ID: TXN-TIME-RANDOM
+        String sharedTransactionId = "TXN-" + System.currentTimeMillis() + "-"
+                + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         Payment lastPayment = null;
 
@@ -103,7 +119,7 @@ public class PaymentServiceImplementation implements PaymentServiceInterface {
             }
         }
 
-        return lastPayment; // Return the last payment record (or we could return a list)
+        return lastPayment;
     }
 
     @Override

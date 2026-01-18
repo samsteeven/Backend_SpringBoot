@@ -2,17 +2,21 @@ package com.app.easypharma_backend.presentation.controller;
 
 import com.app.easypharma_backend.domain.medication.dto.PharmacyMedicationDTO;
 import com.app.easypharma_backend.domain.medication.service.interfaces.PharmacyMedicationServiceInterface;
+import com.app.easypharma_backend.domain.auth.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -22,6 +26,26 @@ import java.util.UUID;
 public class PharmacyMedicationController {
 
     private final PharmacyMedicationServiceInterface pharmacyMedicationService;
+    private final UserRepository userRepository;
+
+    private void validatePharmacyAccess(UUID pharmacyId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                    "Utilisateur non authentifié");
+        }
+
+        String email = auth.getName();
+        com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!"SUPER_ADMIN".equals(user.getRole().name())) {
+            if (user.getPharmacy() == null || !user.getPharmacy().getId().equals(pharmacyId)) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Vous ne pouvez pas gérer l'inventaire de cette pharmacie");
+            }
+        }
+    }
 
     @Operation(summary = "Lister l'inventaire", description = "Récupère tous les médicaments disponibles dans une pharmacie")
     @GetMapping
@@ -38,6 +62,7 @@ public class PharmacyMedicationController {
             @RequestParam @NonNull BigDecimal price,
             @RequestParam @NonNull Integer stock,
             @RequestParam(required = false) LocalDate expiryDate) {
+        validatePharmacyAccess(pharmacyId);
         return ResponseEntity
                 .ok(pharmacyMedicationService.addMedicationToPharmacy(pharmacyId, medicationId, price, stock,
                         expiryDate));
@@ -50,6 +75,7 @@ public class PharmacyMedicationController {
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId,
             @RequestParam @NonNull Integer quantity) {
+        validatePharmacyAccess(pharmacyId);
         return ResponseEntity.ok(pharmacyMedicationService.updateStock(pharmacyId, medicationId, quantity));
     }
 
@@ -60,6 +86,7 @@ public class PharmacyMedicationController {
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId,
             @RequestParam @NonNull BigDecimal price) {
+        validatePharmacyAccess(pharmacyId);
         return ResponseEntity.ok(pharmacyMedicationService.updatePrice(pharmacyId, medicationId, price));
     }
 
@@ -69,6 +96,7 @@ public class PharmacyMedicationController {
     public ResponseEntity<Void> removeMedication(
             @PathVariable @NonNull UUID pharmacyId,
             @PathVariable @NonNull UUID medicationId) {
+        validatePharmacyAccess(pharmacyId);
         pharmacyMedicationService.removeMedicationFromPharmacy(pharmacyId, medicationId);
         return ResponseEntity.noContent().build();
     }
