@@ -9,6 +9,8 @@ import com.app.easypharma_backend.domain.medication.repository.PharmacyMedicatio
 import com.app.easypharma_backend.domain.medication.service.interfaces.PharmacyMedicationServiceInterface;
 import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository;
+import com.app.easypharma_backend.domain.audit.service.AuditLogService;
+import com.app.easypharma_backend.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
     private final PharmacyRepository pharmacyRepository;
     private final MedicationRepository medicationRepository;
     private final PharmacyMedicationMapper pharmacyMedicationMapper;
+    private final AuditLogService auditLogService;
 
     @Override
     public PharmacyMedicationDTO addMedicationToPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId,
@@ -61,6 +64,17 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
                 .build();
 
         PharmacyMedication savedPharmacyMedication = pharmacyMedicationRepository.save(pharmacyMedication);
+
+        // Log to Audit
+        auditLogService.logAction(
+                SecurityUtils.getCurrentUserId(),
+                SecurityUtils.getCurrentUsername(),
+                "ADD_MEDICATION",
+                "PharmacyMedication",
+                savedPharmacyMedication.getId(),
+                java.util.Map.of("medication", medication.getName(), "stock", stock, "price", price),
+                null, null, pharmacyId);
+
         return pharmacyMedicationMapper.toDTO(savedPharmacyMedication);
     }
 
@@ -71,12 +85,19 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
 
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
 
-        item.setStockQuantity(quantity);
-        // Availability update is handled by @PreUpdate in entity, but we can set it
-        // explicitly too for clarity if needed
-        // item.setIsAvailable(quantity > 0);
+        PharmacyMedication saved = pharmacyMedicationRepository.save(item);
 
-        return pharmacyMedicationMapper.toDTO(pharmacyMedicationRepository.save(item));
+        // Log to Audit
+        auditLogService.logAction(
+                SecurityUtils.getCurrentUserId(),
+                SecurityUtils.getCurrentUsername(),
+                "UPDATE_STOCK",
+                "PharmacyMedication",
+                saved.getId(),
+                java.util.Map.of("newQuantity", quantity),
+                null, null, pharmacyId);
+
+        return pharmacyMedicationMapper.toDTO(saved);
     }
 
     @Override
@@ -86,7 +107,19 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
 
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
         item.setPrice(price);
-        return pharmacyMedicationMapper.toDTO(pharmacyMedicationRepository.save(item));
+        PharmacyMedication saved = pharmacyMedicationRepository.save(item);
+
+        // Log to Audit
+        auditLogService.logAction(
+                SecurityUtils.getCurrentUserId(),
+                SecurityUtils.getCurrentUsername(),
+                "UPDATE_PRICE",
+                "PharmacyMedication",
+                saved.getId(),
+                java.util.Map.of("newPrice", price),
+                null, null, pharmacyId);
+
+        return pharmacyMedicationMapper.toDTO(saved);
     }
 
     @Override
@@ -119,6 +152,63 @@ public class PharmacyMedicationServiceImplementation implements PharmacyMedicati
     public void removeMedicationFromPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId) {
         PharmacyMedication item = getLastPharmacyMedication(pharmacyId, medicationId);
         pharmacyMedicationRepository.delete(item);
+    }
+
+    @Override
+    @Transactional
+    public int importMedications(@NonNull UUID pharmacyId, @NonNull String csvContent) {
+        Pharmacy pharmacy = pharmacyRepository.findById(pharmacyId)
+                .orElseThrow(() -> new RuntimeException("Pharmacy not found"));
+
+        String[] lines = csvContent.split("\n");
+        int count = 0;
+        for (String line : lines) {
+            try {
+                if (line.trim().isEmpty())
+                    continue;
+                String[] parts = line.split(",");
+                if (parts.length < 4)
+                    continue;
+
+                String name = parts[0].trim();
+                String dosage = parts[1].trim();
+                BigDecimal price = new BigDecimal(parts[2].trim());
+                Integer stock = Integer.parseInt(parts[3].trim());
+                LocalDate expiryDate = (parts.length > 4 && !parts[4].trim().isEmpty())
+                        ? LocalDate.parse(parts[4].trim())
+                        : null;
+
+                Optional<Medication> medicationOpt = medicationRepository.findByNameAndDosage(name, dosage);
+                if (medicationOpt.isPresent()) {
+                    Medication med = medicationOpt.get();
+                    Optional<PharmacyMedication> existing = pharmacyMedicationRepository
+                            .findByPharmacyIdAndMedicationId(pharmacyId, med.getId());
+                    if (existing.isPresent()) {
+                        PharmacyMedication pm = existing.get();
+                        pm.setStockQuantity(pm.getStockQuantity() + stock);
+                        pm.setPrice(price);
+                        if (expiryDate != null)
+                            pm.setExpiryDate(expiryDate);
+                        pharmacyMedicationRepository.save(pm);
+                    } else {
+                        PharmacyMedication pm = PharmacyMedication.builder()
+                                .pharmacy(pharmacy)
+                                .medication(med)
+                                .price(price)
+                                .stockQuantity(stock)
+                                .expiryDate(expiryDate)
+                                .isAvailable(stock > 0)
+                                .build();
+                        pharmacyMedicationRepository.save(pm);
+                    }
+                    count++;
+                }
+            } catch (Exception e) {
+                // Log and continue with next line
+                continue;
+            }
+        }
+        return count;
     }
 
     private PharmacyMedication getLastPharmacyMedication(@NonNull UUID pharmacyId, @NonNull UUID medicationId) {

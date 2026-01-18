@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.*;
 
 import java.util.Random;
@@ -22,87 +23,96 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 @Import(TestMailConfiguration.class)
 class FullAuthFlowIntegrationTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private TestRestTemplate restTemplate;
 
-    @Test
-    void shouldCompleteFullAuthFlow() throws Exception {
-        // Générer un email et un téléphone uniques
-        String uniqueEmail = "full-flow-" + UUID.randomUUID() + "@test.com";
-        String uniquePhone = String.format("%09d", new Random().nextInt(1000000000));
+        @Autowired
+        private ObjectMapper objectMapper;
 
-        // 1. Inscription
-        RegisterRequest registerRequest = RegisterRequest.builder()
-                .email(uniqueEmail)
-                .password("Password123!")
-                .firstName("Full")
-                .lastName("Flow")
-                .phone(uniquePhone)
-                .role(UserRole.PATIENT)
-                .build();
+        @Test
+        void shouldCompleteFullAuthFlow() throws Exception {
+                // Générer un email et un téléphone uniques
+                String uniqueEmail = "full-flow-" + UUID.randomUUID() + "@test.com";
+                String uniquePhone = String.format("%09d", new Random().nextInt(1000000000));
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+                // 1. Inscription
+                RegisterRequest registerRequest = RegisterRequest.builder()
+                                .email(uniqueEmail)
+                                .password("Password123!")
+                                .firstName("Full")
+                                .lastName("Flow")
+                                .phone(uniquePhone)
+                                .role(UserRole.PATIENT)
+                                .build();
 
-        HttpEntity<RegisterRequest> registerEntity = new HttpEntity<>(registerRequest, headers);
-        ResponseEntity<String> registerResponse = restTemplate.postForEntity("/api/v1/auth/register", registerEntity, String.class);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
 
-        assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+                HttpEntity<RegisterRequest> registerEntity = new HttpEntity<>(registerRequest, headers);
+                ResponseEntity<String> registerResponse = restTemplate.postForEntity("/api/v1/auth/register",
+                                registerEntity, String.class);
 
-        // 2. Connexion
-        LoginRequest loginRequest = LoginRequest.builder()
-                .email(uniqueEmail)
-                .password("Password123!")
-                .build();
+                assertThat(registerResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        HttpEntity<LoginRequest> loginEntity = new HttpEntity<>(loginRequest, headers);
-        ResponseEntity<String> loginResponseEntity = restTemplate.postForEntity("/api/v1/auth/login", loginEntity, String.class);
+                // 2. Connexion
+                LoginRequest loginRequest = LoginRequest.builder()
+                                .email(uniqueEmail)
+                                .password("Password123!")
+                                .build();
 
-        assertThat(loginResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(loginResponseEntity.getBody()).isNotNull();
-        
-        // Convertir la réponse JSON en ApiResponse<AuthResponse>
-        JavaType loginResponseType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class, AuthResponse.class);
-        ApiResponse<AuthResponse> loginApiResponse = objectMapper.readValue(loginResponseEntity.getBody(), loginResponseType);
-        AuthResponse authResponse = loginApiResponse.getData();
-        
-        assertThat(authResponse).isNotNull();
-        assertThat(authResponse.getAccessToken()).isNotNull().isNotEmpty();
-        assertThat(authResponse.getRefreshToken()).isNotNull().isNotEmpty();
+                HttpEntity<LoginRequest> loginEntity = new HttpEntity<>(loginRequest, headers);
+                ResponseEntity<String> loginResponseEntity = restTemplate.postForEntity("/api/v1/auth/login",
+                                loginEntity, String.class);
 
-        // 3. Rafraîchissement du token
-        String refreshToken = authResponse.getRefreshToken();
-        RefreshTokenRequest refreshRequest = RefreshTokenRequest.builder()
-                .refreshToken(refreshToken)
-                .build();
+                assertThat(loginResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+                assertThat(loginResponseEntity.getBody()).isNotNull();
 
-        HttpEntity<RefreshTokenRequest> refreshEntity = new HttpEntity<>(refreshRequest, headers);
-        ResponseEntity<String> refreshResponseEntity = restTemplate.postForEntity("/api/v1/auth/refresh-token", refreshEntity, String.class);
+                // Convertir la réponse JSON en ApiResponse<AuthResponse>
+                JavaType loginResponseType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class,
+                                AuthResponse.class);
+                ApiResponse<AuthResponse> loginApiResponse = objectMapper.readValue(loginResponseEntity.getBody(),
+                                loginResponseType);
+                AuthResponse authResponse = loginApiResponse.getData();
 
-        assertThat(refreshResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(refreshResponseEntity.getBody()).isNotNull();
-        
-        // Convertir la réponse JSON en ApiResponse<AuthResponse>
-        JavaType refreshResponseType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class, AuthResponse.class);
-        ApiResponse<AuthResponse> refreshApiResponse = objectMapper.readValue(refreshResponseEntity.getBody(), refreshResponseType);
-        AuthResponse refreshedResponse = refreshApiResponse.getData();
-        
-        assertThat(refreshedResponse).isNotNull();
-        assertThat(refreshedResponse.getAccessToken()).isNotNull().isNotEmpty();
-        assertThat(refreshedResponse.getRefreshToken()).isNotNull().isNotEmpty();
-        // Le nouveau refresh token doit être différent de l'ancien
-        assertThat(refreshedResponse.getRefreshToken()).isNotEqualTo(refreshToken);
+                assertThat(authResponse).isNotNull();
+                assertThat(authResponse.getAccessToken()).isNotNull().isNotEmpty();
+                assertThat(authResponse.getRefreshToken()).isNotNull().isNotEmpty();
 
-        // 4. Déconnexion
-        HttpEntity<RefreshTokenRequest> logoutEntity = new HttpEntity<>(refreshRequest, headers);
-        ResponseEntity<String> logoutResponse = restTemplate.postForEntity("/api/v1/auth/logout", logoutEntity, String.class);
+                // 3. Rafraîchissement du token
+                String refreshToken = authResponse.getRefreshToken();
+                RefreshTokenRequest refreshRequest = RefreshTokenRequest.builder()
+                                .refreshToken(refreshToken)
+                                .build();
 
-        assertThat(logoutResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-    }
+                HttpEntity<RefreshTokenRequest> refreshEntity = new HttpEntity<>(refreshRequest, headers);
+                ResponseEntity<String> refreshResponseEntity = restTemplate.postForEntity("/api/v1/auth/refresh-token",
+                                refreshEntity, String.class);
+
+                assertThat(refreshResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+                assertThat(refreshResponseEntity.getBody()).isNotNull();
+
+                // Convertir la réponse JSON en ApiResponse<AuthResponse>
+                JavaType refreshResponseType = objectMapper.getTypeFactory().constructParametricType(ApiResponse.class,
+                                AuthResponse.class);
+                ApiResponse<AuthResponse> refreshApiResponse = objectMapper.readValue(refreshResponseEntity.getBody(),
+                                refreshResponseType);
+                AuthResponse refreshedResponse = refreshApiResponse.getData();
+
+                assertThat(refreshedResponse).isNotNull();
+                assertThat(refreshedResponse.getAccessToken()).isNotNull().isNotEmpty();
+                assertThat(refreshedResponse.getRefreshToken()).isNotNull().isNotEmpty();
+                // Le nouveau refresh token doit être différent de l'ancien
+                assertThat(refreshedResponse.getRefreshToken()).isNotEqualTo(refreshToken);
+
+                // 4. Déconnexion
+                HttpEntity<RefreshTokenRequest> logoutEntity = new HttpEntity<>(refreshRequest, headers);
+                ResponseEntity<String> logoutResponse = restTemplate.postForEntity("/api/v1/auth/logout", logoutEntity,
+                                String.class);
+
+                assertThat(logoutResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        }
 }

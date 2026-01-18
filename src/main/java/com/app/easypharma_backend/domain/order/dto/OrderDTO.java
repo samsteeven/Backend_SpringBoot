@@ -23,6 +23,7 @@ public class OrderDTO {
     private UUID pharmacyId;
     private String pharmacyName;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryFee;
     private OrderStatus status;
     private String deliveryAddress;
     private String deliveryCity;

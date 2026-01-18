@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -85,4 +84,26 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
         // Top Selling Medications (Global)
         @Query("SELECT oi.medication.name, SUM(oi.quantity) as totalSold FROM OrderItem oi JOIN oi.order o WHERE o.status = com.app.easypharma_backend.domain.order.entity.OrderStatus.DELIVERED GROUP BY oi.medication.name ORDER BY totalSold DESC")
         List<Object[]> findTopSellingMedications(Pageable pageable);
+
+        // --- PHARMACY DASHBOARD STATS ---
+
+        @Query("SELECT COUNT(o) FROM Order o WHERE o.pharmacy.id = :pharmacyId")
+        long countTotalOrdersByPharmacy(@Param("pharmacyId") UUID pharmacyId);
+
+        @Query("SELECT COUNT(o) FROM Order o WHERE o.pharmacy.id = :pharmacyId AND o.status = com.app.easypharma_backend.domain.order.entity.OrderStatus.PENDING")
+        long countPendingOrdersByPharmacy(@Param("pharmacyId") UUID pharmacyId);
+
+        @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.pharmacy.id = :pharmacyId AND o.status = com.app.easypharma_backend.domain.order.entity.OrderStatus.DELIVERED AND o.createdAt >= :startDate")
+        BigDecimal calculateRevenueByPharmacySince(@Param("pharmacyId") UUID pharmacyId,
+                        @Param("startDate") LocalDateTime startDate);
+
+        @Query("SELECT oi.medication.name, SUM(oi.quantity) as totalSold FROM OrderItem oi JOIN oi.order o WHERE o.pharmacy.id = :pharmacyId AND o.status = com.app.easypharma_backend.domain.order.entity.OrderStatus.DELIVERED GROUP BY oi.medication.name ORDER BY totalSold DESC")
+        List<Object[]> findTopSellingMedicationsByPharmacy(@Param("pharmacyId") UUID pharmacyId, Pageable pageable);
+
+        @Query("SELECT CAST(o.createdAt AS date) as day, SUM(o.totalAmount) FROM Order o WHERE o.pharmacy.id = :pharmacyId AND o.status = com.app.easypharma_backend.domain.order.entity.OrderStatus.DELIVERED AND o.createdAt >= :startDate GROUP BY day ORDER BY day ASC")
+        List<Object[]> findDailyRevenueByPharmacy(@Param("pharmacyId") UUID pharmacyId,
+                        @Param("startDate") LocalDateTime startDate);
+
+        @Query("SELECT o.status, COUNT(o) FROM Order o WHERE o.pharmacy.id = :pharmacyId GROUP BY o.status")
+        List<Object[]> countOrdersByStatusByPharmacy(@Param("pharmacyId") UUID pharmacyId);
 }

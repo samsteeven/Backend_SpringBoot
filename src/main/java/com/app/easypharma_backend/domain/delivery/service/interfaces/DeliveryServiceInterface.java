@@ -29,23 +29,35 @@ public interface DeliveryServiceInterface {
     Delivery getDeliveryByOrderId(@NonNull UUID orderId);
 
     /**
-     * Récupère les commandes disponibles pour livraison auprès de la pharmacie du livreur
+     * Récupère les commandes disponibles pour livraison auprès de la pharmacie du
+     * livreur
      * 
      * @param deliveryPersonId ID du livreur
-     * @param userLatitude Latitude du livreur (optionnel, pour calcul de distance)
-     * @param userLongitude Longitude du livreur (optionnel, pour calcul de distance)
+     * @param userLatitude     Latitude du livreur (optionnel, pour calcul de
+     *                         distance)
+     * @param userLongitude    Longitude du livreur (optionnel, pour calcul de
+     *                         distance)
      * @return Liste des commandes disponibles à livrer
      */
-    List<AvailableOrderDTO> getAvailableOrders(@NonNull UUID deliveryPersonId, 
-                                                BigDecimal userLatitude, 
-                                                BigDecimal userLongitude);
+    List<AvailableOrderDTO> getAvailableOrders(@NonNull UUID deliveryPersonId,
+            BigDecimal userLatitude,
+            BigDecimal userLongitude);
 
     /**
      * Le livreur accepte une commande et se voit assigner cette livraison
      * 
      * @param deliveryPersonId ID du livreur
-     * @param orderId ID de la commande à accepter
+     * @param orderId          ID de la commande à accepter
      * @return La livraison créée/assignée
      */
     Delivery acceptOrder(@NonNull UUID deliveryPersonId, @NonNull UUID orderId);
+
+    /**
+     * Tente d'assigner automatiquement un livreur disponible pour une commande
+     * donnée.
+     * 
+     * @param orderId ID de la commande à assigner
+     * @return La livraison créée si un livreur a été trouvé, sinon null
+     */
+    Delivery autoAssignCourier(@NonNull UUID orderId);
 }

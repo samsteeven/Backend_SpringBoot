@@ -51,19 +51,13 @@ public interface PharmacyRepository extends JpaRepository<Pharmacy, UUID> {
     @Query(value = """
             SELECT * FROM pharmacies p
             WHERE p.status = 'APPROVED'
-            AND (
-                6371 * acos(
-                    cos(radians(:latitude)) * cos(radians(p.latitude)) *
-                    cos(radians(p.longitude) - radians(:longitude)) +
-                    sin(radians(:latitude)) * sin(radians(p.latitude))
-                )
-            ) <= :radiusKm
-            ORDER BY (
-                6371 * acos(
-                    cos(radians(:latitude)) * cos(radians(p.latitude)) *
-                    cos(radians(p.longitude) - radians(:longitude)) +
-                    sin(radians(:latitude)) * sin(radians(p.latitude))
-                )
+            AND ST_DistanceSphere(
+                ST_MakePoint(CAST(p.longitude AS DOUBLE PRECISION), CAST(p.latitude AS DOUBLE PRECISION)),
+                ST_MakePoint(:longitude, :latitude)
+            ) <= :radiusKm * 1000
+            ORDER BY ST_DistanceSphere(
+                ST_MakePoint(CAST(p.longitude AS DOUBLE PRECISION), CAST(p.latitude AS DOUBLE PRECISION)),
+                ST_MakePoint(:longitude, :latitude)
             )
             """, nativeQuery = true)
     List<Pharmacy> findNearbyPharmacies(

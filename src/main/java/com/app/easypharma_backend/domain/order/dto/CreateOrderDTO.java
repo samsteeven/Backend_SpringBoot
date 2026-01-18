@@ -19,6 +19,7 @@ public class CreateOrderDTO {
     private Double deliveryLatitude;
     private Double deliveryLongitude;
     private String notes;
+    private java.math.BigDecimal deliveryFee;
 
     @Data
     @NoArgsConstructor

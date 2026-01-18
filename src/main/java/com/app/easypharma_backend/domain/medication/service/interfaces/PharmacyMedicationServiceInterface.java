@@ -45,4 +45,10 @@ public interface PharmacyMedicationServiceInterface {
      * Remove a medication from pharmacy inventory.
      */
     void removeMedicationFromPharmacy(@NonNull UUID pharmacyId, @NonNull UUID medicationId);
+
+    /**
+     * Import medications from a CSV-like content.
+     * Format: Name, Dosage, Price, Stock, ExpiryDate(YYYY-MM-DD)
+     */
+    int importMedications(@NonNull UUID pharmacyId, @NonNull String csvContent);
 }

@@ -22,6 +22,7 @@ public class NotificationServiceImplementation implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
+    private final com.app.easypharma_backend.infrastructure.firebase.FirebaseService firebaseService;
 
     @Override
     @Transactional
@@ -48,8 +49,11 @@ public class NotificationServiceImplementation implements NotificationService {
 
     @Override
     public void sendPushNotification(User user, String title, String message) {
-        // Simulation de Push Notification (Firebase FCM plus tard)
-        log.info("[PUSH SIMULATION] To: {} | Title: {} | Message: {}", user.getEmail(), title, message);
+        if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+            firebaseService.sendPushNotification(user.getFcmToken(), title, message, null);
+        } else {
+            log.info("[PUSH SIMULATION] No token for {}. Title: {} | Message: {}", user.getEmail(), title, message);
+        }
     }
 
     @Override

@@ -60,6 +60,9 @@ public class User {
     @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy pharmacy;
 
+    @Column(name = "fcm_token", length = 255)
+    private String fcmToken;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;

@@ -150,6 +150,41 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
 
+    @Operation(summary = "Télécharger la facture PDF", description = "Génère une facture pour une commande")
+    @GetMapping("/{id}/invoice")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable @NonNull UUID id) {
+        Objects.requireNonNull(id, "Order ID cannot be null");
+
+        // Sécurité : Vérifier si l'utilisateur a le droit de voir cette facture
+        UUID userId = getCurrentUserId();
+        com.app.easypharma_backend.domain.auth.entity.User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        OrderDTO orderDto = orderService.getOrderById(id);
+
+        if ("PATIENT".equals(user.getRole().name())) {
+            if (!orderDto.getPatientId().equals(userId)) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Cette commande ne vous appartient pas");
+            }
+        } else if ("PHARMACY_ADMIN".equals(user.getRole().name())
+                || "PHARMACY_EMPLOYEE".equals(user.getRole().name())) {
+            if (user.getPharmacy() == null || !orderDto.getPharmacyId().equals(user.getPharmacy().getId())) {
+                throw new com.app.easypharma_backend.infrastructure.exception.ValidationException(
+                        "Accès refusé : Cette commande appartient à une autre pharmacie");
+            }
+        }
+
+        byte[] pdfBytes = orderService.generateInvoicePdf(id);
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=invoice_" + id + ".pdf")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
+
     @NonNull
     private UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

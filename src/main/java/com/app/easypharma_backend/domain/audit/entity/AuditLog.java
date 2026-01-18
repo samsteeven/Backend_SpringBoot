@@ -33,13 +33,13 @@ public class AuditLog {
     /**
      * ID of the user who performed the action
      */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private UUID userId;
 
     /**
      * Username for quick reference
      */
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String username;
 
     /**

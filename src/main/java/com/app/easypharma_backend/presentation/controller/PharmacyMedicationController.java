@@ -100,4 +100,14 @@ public class PharmacyMedicationController {
         pharmacyMedicationService.removeMedicationFromPharmacy(pharmacyId, medicationId);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Importer l'inventaire", description = "Importation en masse via CSV")
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('PHARMACY_ADMIN')")
+    public ResponseEntity<Integer> importMedications(
+            @PathVariable @NonNull UUID pharmacyId,
+            @RequestBody String csvContent) {
+        validatePharmacyAccess(pharmacyId);
+        return ResponseEntity.ok(pharmacyMedicationService.importMedications(pharmacyId, csvContent));
+    }
 }

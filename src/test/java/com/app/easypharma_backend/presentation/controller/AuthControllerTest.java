@@ -13,7 +13,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -22,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
+@ActiveProfiles("test")
 @Import(com.app.easypharma_backend.infrastructure.config.WebSecurityConfig.class)
 @AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
@@ -69,17 +73,13 @@ class AuthControllerTest {
 
         @Test
         void register_shouldReturnOk_andCallRegisterUseCase() throws Exception {
-                String json = objectMapper.writeValueAsString(
-                                new java.util.HashMap<String, Object>() {
-                                        {
-                                                put("email", "user@example.com");
-                                                put("password", "P@ssw0rdA");
-                                                put("firstName", "John");
-                                                put("lastName", "Doe");
-                                                put("phone", "600000000");
-                                                put("role", "PATIENT");
-                                        }
-                                });
+                String json = objectMapper.writeValueAsString(Map.of(
+                                "email", "user@example.com",
+                                "password", "P@ssw0rdA",
+                                "firstName", "John",
+                                "lastName", "Doe",
+                                "phone", "600000000",
+                                "role", "PATIENT"));
 
                 when(registerUseCase.execute(any())).thenReturn(null);
 
@@ -94,13 +94,9 @@ class AuthControllerTest {
 
         @Test
         void login_shouldReturnOk_andCallLoginUseCase() throws Exception {
-                String json = objectMapper.writeValueAsString(
-                                new java.util.HashMap<String, String>() {
-                                        {
-                                                put("email", "user@example.com");
-                                                put("password", "P@ssw0rd");
-                                        }
-                                });
+                String json = objectMapper.writeValueAsString(Map.of(
+                                "email", "user@example.com",
+                                "password", "P@ssw0rd"));
 
                 when(loginUseCase.execute(any())).thenReturn(null);
 
@@ -115,12 +111,8 @@ class AuthControllerTest {
 
         @Test
         void refreshToken_shouldReturnOk_andCallRefreshTokenUseCase() throws Exception {
-                String json = objectMapper.writeValueAsString(
-                                new java.util.HashMap<String, String>() {
-                                        {
-                                                put("refreshToken", "refresh-token-value");
-                                        }
-                                });
+                String json = objectMapper.writeValueAsString(Map.of(
+                                "refreshToken", "refresh-token-value"));
 
                 when(refreshTokenUseCase.execute(any())).thenReturn(null);
 
@@ -135,12 +127,8 @@ class AuthControllerTest {
 
         @Test
         void logout_shouldReturnOk_andCallLogoutUseCase() throws Exception {
-                String json = objectMapper.writeValueAsString(
-                                new java.util.HashMap<String, String>() {
-                                        {
-                                                put("refreshToken", "refresh-token-value");
-                                        }
-                                });
+                String json = objectMapper.writeValueAsString(Map.of(
+                                "refreshToken", "refresh-token-value"));
 
                 doNothing().when(logoutUseCase).execute(anyString());
 
@@ -155,12 +143,8 @@ class AuthControllerTest {
 
         @Test
         void forgotPassword_shouldReturnOk_andCallForgotPasswordUseCase() throws Exception {
-                String json = objectMapper.writeValueAsString(
-                                new java.util.HashMap<String, String>() {
-                                        {
-                                                put("email", "user@example.com");
-                                        }
-                                });
+                String json = objectMapper.writeValueAsString(Map.of(
+                                "email", "user@example.com"));
 
                 when(rateLimitingService.tryConsume(anyString())).thenReturn(true);
                 doNothing().when(forgotPasswordUseCase).execute(anyString(), anyString(), anyString());
@@ -176,13 +160,9 @@ class AuthControllerTest {
 
         @Test
         void resetPassword_shouldReturnOk_andCallResetPasswordUseCase() throws Exception {
-                String json = objectMapper.writeValueAsString(
-                                new java.util.HashMap<String, String>() {
-                                        {
-                                                put("token", "reset-token");
-                                                put("newPassword", "NewP@ss1");
-                                        }
-                                });
+                String json = objectMapper.writeValueAsString(Map.of(
+                                "token", "reset-token",
+                                "newPassword", "NewP@ss1"));
 
                 doNothing().when(resetPasswordUseCase).execute(anyString(), anyString());
 

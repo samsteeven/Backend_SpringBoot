@@ -18,6 +18,7 @@ import com.app.easypharma_backend.domain.pharmacy.entity.Pharmacy;
 import com.app.easypharma_backend.domain.pharmacy.repository.PharmacyRepository;
 import com.app.easypharma_backend.infrastructure.validation.StatusTransitionValidator;
 import com.app.easypharma_backend.domain.audit.service.AuditLogService;
+import com.app.easypharma_backend.infrastructure.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,9 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     private final NotificationService notificationService;
     private final StatusTransitionValidator statusValidator;
     private final AuditLogService auditLogService;
+    private final com.app.easypharma_backend.domain.delivery.service.interfaces.DeliveryFeeService deliveryFeeService;
+    private final com.app.easypharma_backend.domain.delivery.service.interfaces.DeliveryServiceInterface deliveryService;
+    private final com.app.easypharma_backend.domain.order.service.interfaces.PdfServiceInterface pdfService;
 
     @Override
     public OrderDTO createOrder(@NonNull UUID patientId, @NonNull CreateOrderDTO createOrderDTO) {
@@ -116,6 +120,25 @@ public class OrderServiceImplementation implements OrderServiceInterface {
 
         order.setTotalAmount(totalAmount);
 
+        // 4.5 Calculate Delivery Fee based on distance
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        if (createOrderDTO.getDeliveryLatitude() != null && createOrderDTO.getDeliveryLongitude() != null &&
+                pharmacy.getLatitude() != null && pharmacy.getLongitude() != null) {
+
+            double distance = com.app.easypharma_backend.infrastructure.util.GeoUtils.calculateDistance(
+                    pharmacy.getLatitude().doubleValue(),
+                    pharmacy.getLongitude().doubleValue(),
+                    createOrderDTO.getDeliveryLatitude(),
+                    createOrderDTO.getDeliveryLongitude());
+            deliveryFee = deliveryFeeService.calculateFee(distance);
+            log.info("Calculated delivery fee: {} for distance: {} km", deliveryFee, distance);
+        } else {
+            log.warn("Missing coordinates for delivery fee calculation. Using zero.");
+        }
+
+        order.setDeliveryFee(deliveryFee);
+        order.setTotalAmount(totalAmount.add(deliveryFee));
+
         // 5. Save Order (Cascade saves items)
         Order savedOrder = orderRepository.save(order);
 
@@ -184,8 +207,8 @@ public class OrderServiceImplementation implements OrderServiceInterface {
                     "newStatus", status.toString(),
                     "pharmacyId", order.getPharmacy().getId().toString());
             auditLogService.logAction(
-                    UUID.randomUUID(), // TODO: Get from Authentication
-                    "SYSTEM", // TODO: Get from Authentication
+                    SecurityUtils.getCurrentUserId(),
+                    SecurityUtils.getCurrentUsername(),
                     "UPDATE_ORDER_STATUS",
                     "ORDER",
                     orderId,
@@ -222,6 +245,15 @@ public class OrderServiceImplementation implements OrderServiceInterface {
                         NotificationType.ORDER);
                 notificationService.sendSms(order.getPatient().getPhone(), patientMsg);
                 notificationService.sendEmail(order.getPatient().getEmail(), patientTitle, patientMsg);
+            }
+        }
+
+        if (status == OrderStatus.READY) {
+            log.info("Order {} is READY. Triggering auto-assignment for courier...", orderId);
+            try {
+                deliveryService.autoAssignCourier(orderId);
+            } catch (Exception e) {
+                log.error("Failed to auto-assign courier for order {}", orderId, e);
             }
         }
 
@@ -284,5 +316,12 @@ public class OrderServiceImplementation implements OrderServiceInterface {
         Objects.requireNonNull(pharmacyId, "Pharmacy ID cannot be null");
         java.math.BigDecimal revenue = orderRepository.calculateTotalRevenueByPharmacy(pharmacyId);
         return revenue != null ? revenue : java.math.BigDecimal.ZERO;
+    }
+
+    @Override
+    public byte[] generateInvoicePdf(@NonNull UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+        return pdfService.generateInvoicePdf(order);
     }
 }
