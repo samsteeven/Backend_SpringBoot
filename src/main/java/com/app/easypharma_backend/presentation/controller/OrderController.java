@@ -99,6 +99,26 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
     }
 
+    @Operation(summary = "Télécharger Facture", description = "Génère le PDF de la commande")
+    @GetMapping(value = "/{id}/invoice", produces = org.springframework.http.MediaType.APPLICATION_PDF_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable @NonNull UUID id) {
+        Objects.requireNonNull(id, "Order ID cannot be null");
+        OrderDTO orderDTO = orderService.getOrderById(id);
+        
+        // We need the entity for the PDF service (simpler than mapping back DTO -> Entity or duplicating logic)
+        // ideally PdfService should take DTO or we fetch entity via specific service method.
+        // For now, I'll fetch entity via repository in service and adding a method, 
+        // OR better: Add `getOrderEntity` in service but that exposes domain.
+        // Let's rely on Service to generate PDF. A bit cleaner.
+        
+        // REVISION: Let's inject PdfService into OrderController for now, but we need the Order Entity.
+        // I will add `generateInvoice(UUID orderId)` to `OrderService` interface.
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice_" + orderDTO.getOrderNumber() + ".pdf")
+                .body(orderService.generateInvoicePdf(id));
+    }
+
     @NonNull
     private UUID getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
