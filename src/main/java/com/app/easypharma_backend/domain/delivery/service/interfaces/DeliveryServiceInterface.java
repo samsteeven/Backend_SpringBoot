@@ -2,6 +2,7 @@ package com.app.easypharma_backend.domain.delivery.service.interfaces;
 
 import com.app.easypharma_backend.domain.delivery.dto.AvailableOrderDTO;
 import com.app.easypharma_backend.domain.delivery.entity.Delivery;
+import com.app.easypharma_backend.domain.order.entity.Order;
 import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
@@ -48,4 +49,13 @@ public interface DeliveryServiceInterface {
      * @return La livraison créée/assignée
      */
     Delivery acceptOrder(@NonNull UUID deliveryPersonId, @NonNull UUID orderId);
+    /**
+     * Calcule les frais de livraison en fonction de la distance
+     */
+    BigDecimal calculateDeliveryFee(double distanceKm);
+
+    /**
+     * Assigne automatiquement un livreur à une commande
+     */
+    Delivery autoAssignDelivery(Order order);
 }

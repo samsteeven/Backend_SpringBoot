@@ -45,4 +45,6 @@ public interface OrderServiceInterface {
      * Get total revenue for a pharmacy (DELIVERED orders).
      */
     java.math.BigDecimal getPharmacyRevenue(@NonNull UUID pharmacyId);
+
+    byte[] generateInvoicePdf(UUID orderId);
 }

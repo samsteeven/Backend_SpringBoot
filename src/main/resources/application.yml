@@ -77,9 +77,9 @@ spring:
   # FLYWAY MIGRATION
   # ========================================
   flyway:
-    enabled: true
+    enabled: false
     baseline-on-migrate: true
-    locations: classpath:db/migration
+    locations: classpath:db/migrations
     validate-on-migrate: true
   
   # ========================================

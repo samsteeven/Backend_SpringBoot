@@ -47,6 +47,17 @@ public class OrderServiceImplementation implements OrderServiceInterface {
     private final NotificationService notificationService;
     private final StatusTransitionValidator statusValidator;
     private final AuditLogService auditLogService;
+    private final com.app.easypharma_backend.infrastructure.pdf.PdfService pdfService;
+    private final com.app.easypharma_backend.domain.delivery.service.interfaces.DeliveryServiceInterface deliveryService;
+
+    @Override
+    public byte[] generateInvoicePdf(@NonNull UUID orderId) {
+        Objects.requireNonNull(orderId, "Order ID cannot be null");
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        
+        return pdfService.generateInvoice(order);
+    }
 
     @Override
     public OrderDTO createOrder(@NonNull UUID patientId, @NonNull CreateOrderDTO createOrderDTO) {
@@ -68,6 +79,22 @@ public class OrderServiceImplementation implements OrderServiceInterface {
                     "Cannot create order: Pharmacy is not approved. Status: " + pharmacy.getStatus());
         }
 
+        // Calculate Delivery Fee
+        BigDecimal deliveryFee = BigDecimal.ZERO;
+        if (createOrderDTO.getDeliveryLatitude() != null && createOrderDTO.getDeliveryLongitude() != null &&
+            pharmacy.getLatitude() != null && pharmacy.getLongitude() != null) {
+            
+            double distance = calculateDistance(
+                pharmacy.getLatitude().doubleValue(), pharmacy.getLongitude().doubleValue(),
+                createOrderDTO.getDeliveryLatitude(), createOrderDTO.getDeliveryLongitude()
+            );
+            deliveryFee = deliveryService.calculateDeliveryFee(distance);
+        } else {
+             // Default if no coordinates (should not happen if address validation exists)
+             // Or throw exception? Let's assume default fee.
+             deliveryFee = deliveryService.calculateDeliveryFee(5.0); // Assume 5km default
+        }
+
         // 3. Create Order Entity
         Order order = Order.builder()
                 .patient(patient)
@@ -85,6 +112,7 @@ public class OrderServiceImplementation implements OrderServiceInterface {
                         : null)
                 .notes(createOrderDTO.getNotes())
                 .totalAmount(BigDecimal.ZERO)
+                .deliveryFee(deliveryFee)
                 .items(new ArrayList<>())
                 .build();
 
@@ -114,6 +142,10 @@ public class OrderServiceImplementation implements OrderServiceInterface {
             order.addItem(orderItem);
         }
 
+        // Add fee to total or keep separate? Usually Total Amount includes everything.
+        // Let's keep totalAmount as merchandise total and maybe add a grandTotal logic or include fee.
+        // For simplicity, let's say totalAmount = items + fee.
+        totalAmount = totalAmount.add(deliveryFee);
         order.setTotalAmount(totalAmount);
 
         // 5. Save Order (Cascade saves items)
@@ -128,6 +160,17 @@ public class OrderServiceImplementation implements OrderServiceInterface {
         notificationService.sendEmail(pharmacy.getUser().getEmail(), pharmacistTitle, pharmacistMsg);
 
         return orderMapper.toDTO(savedOrder);
+    }
+    
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371;
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     @Override
@@ -205,11 +248,6 @@ public class OrderServiceImplementation implements OrderServiceInterface {
 
             order.setConfirmedAt(LocalDateTime.now());
             // Reduce stock here if strategy is "Reserve on Confirm"
-            // But simpler to assume stock is checked on Create and reduced on Pay/Confirm.
-            // Im implementing simple update here.
-            // Ideally we should have a separate method "confirmOrder" which handles stock
-            // deduction.
-            // I'll add stock deduction on PAID/CONFIRMED transition
             if (isFirstConfirmation) { // First confirmation
                 deductStock(order);
 
@@ -222,6 +260,18 @@ public class OrderServiceImplementation implements OrderServiceInterface {
                         NotificationType.ORDER);
                 notificationService.sendSms(order.getPatient().getPhone(), patientMsg);
                 notificationService.sendEmail(order.getPatient().getEmail(), patientTitle, patientMsg);
+            }
+        } else if (status == OrderStatus.READY) {
+            // Trigger Auto-Assignment
+            try {
+                deliveryService.autoAssignDelivery(order);
+            } catch (Exception e) {
+                // Log warning but don't block state change? Or block?
+                // User requirement: "Algorithme d'assignation".
+                // If assignment fails, maybe we should warn user or keep it in READY but not assigned?
+                // For now, log error and notify pharmacy?
+                log.error("Failed to auto-assign delivery for order {}", order.getId(), e);
+                // We could send a notification to Pharmacy Admin saying "No courier found"
             }
         }
 

@@ -50,6 +50,11 @@ public class Pharmacy {
     @Column(name = "longitude", nullable = false, precision = 11, scale = 8)
     private BigDecimal longitude;
 
+    // POSTGIS Column
+    @Column(columnDefinition = "geometry(Point, 4326)")
+    @JsonIgnore
+    private org.locationtech.jts.geom.Point location;
+
     @Column(name = "average_rating")
     @Builder.Default
     private Double averageRating = 0.0;
@@ -85,10 +90,19 @@ public class Pharmacy {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        updateLocation();
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        updateLocation();
+    }
+
+    private void updateLocation() {
+        if (latitude != null && longitude != null) {
+            org.locationtech.jts.geom.GeometryFactory geometryFactory = new org.locationtech.jts.geom.GeometryFactory();
+            this.location = geometryFactory.createPoint(new org.locationtech.jts.geom.Coordinate(longitude.doubleValue(), latitude.doubleValue()));
+        }
     }
 }

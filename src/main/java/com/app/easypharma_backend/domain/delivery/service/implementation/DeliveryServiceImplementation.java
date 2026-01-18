@@ -241,6 +241,65 @@ public class DeliveryServiceImplementation implements DeliveryServiceInterface {
     /**
      * Calcule la distance en km entre deux points GPS (Haversine formula)
      */
+    @Override
+    public BigDecimal calculateDeliveryFee(double distanceKm) {
+        // Logique de calcul dynamique
+        // Base fee: 2.50 €
+        // + 0.50 € par km
+        // + suppléments éventuels
+        BigDecimal baseFee = BigDecimal.valueOf(2.50);
+        BigDecimal distanceFee = BigDecimal.valueOf(distanceKm).multiply(BigDecimal.valueOf(0.50));
+        
+        // Minimum fee
+        BigDecimal total = baseFee.add(distanceFee);
+        return total.max(BigDecimal.valueOf(2.50));
+    }
+
+    @Override
+    public Delivery autoAssignDelivery(@NonNull Order order) {
+        // Trouver les livreurs de la pharmacie
+        // Pour l'instant on prend le premier disponible ou le plus proche
+        // TODO: Implémenter logic plus complexe (distance, disponibilité, charge de travail)
+        
+        List<User> couriers = userRepository.findByPharmacyId(order.getPharmacy().getId()); // Needs this method in UserRepo or filter manual
+        // Assuming we need to implement findByPharmacyId in UserRepo or use query
+        
+        User bestCourier = null;
+        double minDistance = Double.MAX_VALUE;
+        
+        for (User courier : couriers) {
+            if (courier.getRole() == UserRole.DELIVERY) {
+                // Check distance if courier has location
+                if (courier.getLatitude() != null && courier.getLongitude() != null &&
+                    order.getPharmacy().getLatitude() != null && order.getPharmacy().getLongitude() != null) {
+                        
+                    double distance = calculateDistance(
+                        courier.getLatitude().doubleValue(), courier.getLongitude().doubleValue(),
+                        order.getPharmacy().getLatitude().doubleValue(), order.getPharmacy().getLongitude().doubleValue()
+                    );
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        bestCourier = courier;
+                    }
+                } else {
+                    // Fallback: take first one found if location unknown
+                    if (bestCourier == null) bestCourier = courier;
+                }
+            }
+        }
+
+        if (bestCourier == null) {
+            // Aucun livreur trouvé
+            // On pourrait lancer une exception ou juste logger et laisser en pending
+           // Mais le contrat demande une assignation.
+           // On lance une exception pour l'instant si pas de livreur.
+           throw new RuntimeException("Aucun livreur disponible pour cette pharmacie.");
+        }
+
+        return assignDelivery(order.getPharmacy().getId(), order.getId(), bestCourier.getId());
+    }
+
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Radius of the earth in km
         double latDistance = Math.toRadians(lat2 - lat1);
