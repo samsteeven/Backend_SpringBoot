@@ -32,6 +32,9 @@
         <testcontainers.version>1.19.8</testcontainers.version>
         <postgis.version>2025.1.0</postgis.version>
         <hibernate-spatial.version>6.4.4.Final</hibernate-spatial.version>
+        <!-- SonarQube Configuration -->
+        <sonar.projectKey>easypharma_backend</sonar.projectKey>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
     </properties>
     <!-- Dependencies -->
     <dependencies>
